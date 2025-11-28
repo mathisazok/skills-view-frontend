@@ -1,64 +1,76 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useInView } from "../utils/hooks";
-import Logo from "../components/Logo";
+import { useAuth } from "../context/AuthContext";
+import subscriptionService from "../services/subscriptionService";
 import LogoLanding from "../components/LogoLandingPage";
 
 const SubscriptionPricingPage = () => {
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [cardRef, cardVisible] = useInView();
   const [billingType, setBillingType] = useState("monthly");
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const pricingPlans2 = [
-    {
-      id: 1,
-      name: "Starter",
-      monthlyPrice: 9.99,
-      annualPrice: 99.99,
-      description: "Parfait pour débuter",
-      features: [
-        "5 analyses de matchs par mois",
-        "Accès aux clips vidéo de base",
-        "Support par email",
-        "Stockage 10 GB",
-      ],
-      cta: "Commencer",
-      highlighted: false,
-    },
-    {
-      id: 2,
-      name: "Professional",
-      monthlyPrice: 19.99,
-      annualPrice: 199.99,
-      description: "Pour les équipes sérieuses",
-      features: [
-        "Analyses illimitées",
-        "Accès à tous les clips vidéo",
-        "Support prioritaire",
-        "Stockage 100 GB",
-        "Export en haute définition",
-        "Partage d'équipe (5 utilisateurs)",
-      ],
-      cta: "Choisir",
-      highlighted: true,
-    },
-    {
-      id: 3,
-      name: "Elite",
-      monthlyPrice: 49.99,
-      annualPrice: 499.99,
-      description: "Pour les professionnels",
-      features: [
-        "Tout de Professional",
-        "IA avancée d'analyse",
-        "Support 24/7 dédié",
-        "Stockage illimité",
-        "API personnalisée",
-        "Partage illimité",
-        "Rapports personnalisés",
-      ],
-      cta: "Contacter",
-      highlighted: false,
-    },
-  ];
+  // Fetch plans from backend
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const data = await subscriptionService.getPlans();
+        setPlans(data);
+      } catch (error) {
+        console.error('Error fetching plans:', error);
+        // Fallback to hardcoded plans if API fails
+        setPlans(pricingPlans);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPlans();
+  }, []);
+
+  const handlePlanClick = async (plan) => {
+    if (!isAuthenticated) {
+      // Redirect to register with plan selection
+      navigate(`/login?plan=${plan.id}&interval=${billingType}`);
+      return;
+    }
+
+    // User is logged in
+    const currentPlanId = user?.current_subscription?.plan_id;
+    
+    if (currentPlanId === plan.id) {
+      // Same plan, show message
+      alert('Vous êtes déjà abonné à ce plan');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const result = await subscriptionService.changePlan(
+        plan.id,
+        billingType
+      );
+      
+      // Check if we need to redirect to Stripe checkout
+      if (result.checkout_url) {
+        window.location.href = result.checkout_url;
+        return;
+      }
+      
+      // Redirect to dashboard after successful plan change (Mock mode or Free plan)
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error changing plan:', error);
+      const errorMessage = error.response?.data?.detail || 'Erreur lors du changement de plan';
+      alert(errorMessage);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
  const pricingPlans =  [
       {
         id: 1,
@@ -66,7 +78,7 @@ const SubscriptionPricingPage = () => {
         description:'Idéale pour découvrir SkillsView et tester ses fonctionnalités.',
          monthlyPrice: 0,
          annualPrice: 0,
-        period: 'par mois',
+         period: 'par mois',
   
         features: [
           'Import jusqu\'à 1 matchs/mois',
@@ -148,9 +160,9 @@ const SubscriptionPricingPage = () => {
             Mensuel
           </button>
           <button
-            onClick={() => setBillingType("annual")}
+            onClick={() => setBillingType("yearly")}
             className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-              billingType === "annual"
+              billingType === "yearly"
                 ? "bg-primary text-white"
                 : "text-gray-light hover:text-white cursor-pointer"
             }`}
@@ -212,7 +224,7 @@ const SubscriptionPricingPage = () => {
                     {billingType === "monthly" ? "/mois" : "/an"}
                   </span>
                 </div>
-                {getSavings(plan) && (
+                {!isNaN(getSavings(plan)) && getSavings(plan)  && (
                   <p className="text-primary text-sm font-semibold">
                     💰 Économisez {getSavings(plan)}% avec l'annuel
                   </p>
@@ -221,13 +233,15 @@ const SubscriptionPricingPage = () => {
 
               {/* CTA Button */}
               <button
-                className={`w-full py-3 rounded-lg font-medium mb-8 transition-all ${
+                onClick={() => handlePlanClick(plan)}
+                disabled={actionLoading || loading}
+                className={`w-full py-3 rounded-lg font-medium mb-8 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                   plan.highlighted
                     ? "bg-primary text-white hover:bg-green-600"
                     : "bg-[#FFFFFF1A] text-white hover:bg-[#FFFFFF33]"
                 }`}
               >
-                {plan.cta}
+                {actionLoading ? 'Chargement...' : plan.cta}
               </button>
 
               {/* Features List */}

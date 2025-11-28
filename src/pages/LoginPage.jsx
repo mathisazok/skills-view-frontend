@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../components/Input';
 import Button from '../components/Button';
-import authService from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 import { validators, errorMessages } from '../utils/validators';
+import subscriptionService from '../services/subscriptionService';
 import logo from '../assets/logo.png';
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login, signup } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState({ text: '', type: '' }); // type: 'success' or 'error'
 
   // State Login
   const [loginData, setLoginData] = useState({
@@ -22,6 +25,7 @@ const LoginPage = () => {
     name: '',
     email: '',
     password: '',
+    password_confirm: '',
     clubName: '',
   });
 
@@ -53,6 +57,11 @@ const LoginPage = () => {
     if (!signupData.password || !validators.password(signupData.password)) {
       newErrors.password = errorMessages.invalidPassword;
     }
+    if (!signupData.password_confirm) {
+      newErrors.password_confirm = 'Veuillez confirmer votre mot de passe';
+    } else if (signupData.password !== signupData.password_confirm) {
+      newErrors.password_confirm = 'Les mots de passe ne correspondent pas';
+    }
     if (!signupData.clubName || !validators.clubName(signupData.clubName)) {
       newErrors.clubName = errorMessages.invalidClubName;
     }
@@ -66,15 +75,17 @@ const LoginPage = () => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setMessage({ text: '', type: '' }); // Clear any previous message
       return;
     }
 
     setLoading(true);
     try {
-      await authService.login(loginData.email, loginData.password);
+      await login(loginData.email, loginData.password);
       navigate('/dashboard');
     } catch (error) {
       setErrors({ submit: error.message });
+      setMessage({ text: error.message, type: 'error' }); // Show error message
     } finally {
       setLoading(false);
     }
@@ -87,15 +98,44 @@ const LoginPage = () => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setMessage({ text: '', type: '' }); // Clear any previous message
       return;
     }
 
     setLoading(true);
     try {
-      await authService.signup(signupData);
+      // Step 1: Register the user
+      await signup(signupData);
+      
+      // Step 2: Login the user to get authentication tokens
+      await login(signupData.email, signupData.password);
+      
+      // Step 3: Check for plan selection in URL params
+      const searchParams = new URLSearchParams(window.location.search);
+      const selectedPlan = searchParams.get('plan');
+      const interval = searchParams.get('interval') || 'monthly';
+      
+      // Step 4: If a paid plan was selected, upgrade from Free to the selected plan
+      if (selectedPlan && selectedPlan !== '1') { // 1 is Free plan ID
+        try {
+          // Use changePlan since user already has Free plan by default
+          const result = await subscriptionService.changePlan(parseInt(selectedPlan), interval);
+          
+          if (result.checkout_url) {
+            window.location.href = result.checkout_url;
+            return;
+          }
+        } catch (subscriptionError) {
+          console.error('Plan upgrade failed:', subscriptionError);
+          // Don't block signup, user can upgrade later from pricing page
+        }
+      }
+      
+      // Step 5: Redirect to dashboard
       navigate('/dashboard');
     } catch (error) {
       setErrors({ submit: error.message });
+      setMessage({ text: error.message, type: 'error' }); // Show error message
     } finally {
       setLoading(false);
     }
@@ -120,6 +160,7 @@ const LoginPage = () => {
             onClick={() => {
               setIsLogin(true);
               setErrors({});
+              setMessage({ text: '', type: '' });
             }}
             className={`flex-1 py-2.5 px-4  border-b-[3px]  transition-all font-semibold font-alt ${
               isLogin
@@ -133,6 +174,7 @@ const LoginPage = () => {
             onClick={() => {
               setIsLogin(false);
               setErrors({});
+              setMessage({ text: '', type: '' });
             }}
              className={`flex-1 py-2.5 px-4  border-b-[3px]  transition-all font-semibold  font-alt  ${
               !isLogin
@@ -144,8 +186,19 @@ Créer un compte
           </button>
         </div>
 
-        {/* Erreur globale */}
-        {errors.submit && (
+        {/* Message global (erreur ou succès) */}
+        {message.text && (
+          <div className={`p-3 rounded-lg mb-6 text-sm ${
+            message.type === 'success' 
+              ? 'bg-green-100 text-green-700' 
+              : 'bg-red-100 text-red-700'
+          }`}>
+            {message.text}
+          </div>
+        )}
+
+        {/* Erreurs de validation des champs */}
+        {errors.submit && !message.text && (
           <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-6 text-sm">
             {errors.submit}
           </div>
@@ -222,6 +275,17 @@ Créer un compte
                 setSignupData({ ...signupData, password: e.target.value })
               }
               error={errors.password}
+              required
+            />
+
+            <Input
+              type="password"
+              placeholder="Confirmer le mot de passe"
+              value={signupData.password_confirm}
+              onChange={(e) =>
+                setSignupData({ ...signupData, password_confirm: e.target.value })
+              }
+              error={errors.password_confirm}
               required
             />
 

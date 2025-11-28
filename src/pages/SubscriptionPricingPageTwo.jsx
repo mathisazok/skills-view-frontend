@@ -43,9 +43,9 @@ const SubscriptionPricingPageTwo = () => {
             Mensuel
           </button>
           <button
-            onClick={() => setBillingType("annual")}
+            onClick={() => setBillingType("yearly")}
             className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-              billingType === "annual"
+              billingType === "yearly"
                 ? "text-gray-light hover:text-white"
                 : "bg-[#2C2C2C] text-white cursor-pointer"
             }`}

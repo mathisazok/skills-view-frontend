@@ -29,7 +29,7 @@ const Navbar = () => {
           isOpen ? 'flex' : 'hidden'
         } md:flex flex-col md:flex-row gap-8 absolute md:static top-13 left-0 right-0 bg-primary md:bg-transparent p-6 md:p-0 items-center md:align-baseline`}>
           <li><a href="#services" className="hover:opacity-80 transition">Fonctionnalité</a></li>
-          <li><Link to='pricing-2' className="hover:opacity-80 transition">Tarifs</Link></li>
+          <li><Link to='pricing' className="hover:opacity-80 transition">Tarifs</Link></li>
           <li><a href="#reviews" className="hover:opacity-80 transition">Témoignages</a></li>
           <li><a href="#contact" className="hover:opacity-80 transition">Contact</a></li>
           <li className="flex gap-2">

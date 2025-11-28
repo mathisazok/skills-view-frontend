@@ -1,20 +1,21 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-
 const SubscriptionManagement = ({
-  planTitle = "Pro Plan",
-  videosUsed = 3,
-  videosLimit = 10,
+  planTitle = "Free",
+  videoRemaining = 1,
+  videosLimit = 1,
   onManageClick = () => {},
 }) => {
   const navigate = useNavigate();
-  const progressPercentage = (videosUsed / videosLimit) * 100;
+  
+  const isUnlimited = planTitle === "Ultimate" || videosLimit === 0;
+  const usedVideos = isUnlimited ? '?' : videosLimit - videoRemaining;
+  const progressPercentage = isUnlimited ? 100 : ((videosLimit - videoRemaining) / videosLimit) * 100;
 
   const handleManageClick = () => {
     onManageClick();
     navigate("/manage-subscription");
   };
-
   return (
     <div className="bg-dark-dashboard rounded-xl p-6 max-h-[210px] scale-90 font-spline">
       {/* Header Badge */}
@@ -30,7 +31,10 @@ const SubscriptionManagement = ({
       {/* Usage Info */}
       <div className="flex items-center gap-2">
         <p className="text-sm text-chateau  font-normal leading-6">
-          {videosUsed}/{videosLimit} vidéos analysées ce mois-ci
+          {isUnlimited 
+            ? "Vidéos illimitées" 
+            : `${videosLimit - videoRemaining}/${videosLimit} vidéos analysées ce mois-ci`
+          }
         </p>
       </div>
 

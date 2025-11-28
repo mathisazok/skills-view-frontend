@@ -1,23 +1,61 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInView } from "../utils/hooks";
 import Logo from "../components/Logo";
-
+import { useAuth } from "../context/AuthContext";
+import subscriptionService from "../services/subscriptionService";
 const ManageSubscriptionPage = () => {
+  const { user, isAuthenticated, loading, refreshUser } = useAuth();
   const navigate = useNavigate();
-  const progressPercentage = (12 / 20) * 100;
   const [cardRef, cardVisible] = useInView();
+  
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/login');
+    }
+  }, [loading, isAuthenticated, navigate]);
 
   const handleUpgrade = () => {
-   navigate('/pricing-2')
-    console.log("Upgrade clicked");
+   navigate('/pricing')
   };
 
-  const handleCancel = () => {
-    // Handle cancel logic
-    console.log("Cancel clicked");
+  const handleCancel = async () => {
+    if (window.confirm("Êtes-vous sûr de vouloir annuler votre abonnement ? Il restera actif jusqu'à la fin de la période en cours.")) {
+      try {
+        await subscriptionService.cancelSubscription(false);
+        await refreshUser(); // Refresh user data to show updated status
+        alert("Votre abonnement a été annulé avec succès.");
+      } catch (error) {
+        console.error("Cancellation error:", error);
+        alert("Erreur lors de l'annulation. Veuillez réessayer.");
+      }
+    }
   };
+  
+  // Check if plan is unlimited
+  const isUnlimited = user?.current_subscription?.plan_name === "Ultimate" || user?.current_subscription?.plan_quota === 0;
+  const usedQuota = user?.current_subscription?.quota_used || 0;
+  const progressPercentage = isUnlimited ? 100 : ((usedQuota / user?.current_subscription?.plan_quota) * 100);
+  
+function formatDateFrench(dateString) {
+  if (!dateString) return '';
 
+  const date = new Date(dateString);
+
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+}
+
+
+  console.log(user?.current_subscription);
+
+  // Check if subscription is canceled (auto_renew is false)
+  const isCanceled = !user?.current_subscription?.auto_renew;
+  
   return (
     <div className="min-h-screen bg-dark overflow-hidden">
       <div className="fixed">
@@ -50,12 +88,12 @@ const ManageSubscriptionPage = () => {
                     Votre Abonnement Actuel
                   </h2>
                   <p className="text-gray-300 text-xl leading-6 tracking-[-0.36px] ">
-                    Abonnement Premium
+                    {user?.current_subscription?.plan_name}
                   </p>
                   <div className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 bg-[#34C759] rounded-full"></div>
-                    <span className="text-[#33C758] text-xs leading-5 mt-1">
-                      Actif
+                    <div className={`w-1.5 h-1.5 rounded-full ${isCanceled ? 'bg-orange-500' : 'bg-[#34C759]'}`}></div>
+                    <span className={`text-xs leading-5 mt-1 ${isCanceled ? 'text-orange-500' : 'text-[#33C758]'}`}>
+                      {isCanceled ? 'Annulé (Expire bientôt)' : 'Actif'}
                     </span>
                   </div>
                 </div>
@@ -63,10 +101,11 @@ const ManageSubscriptionPage = () => {
                 {/* Right Part */}
                 <div className="flex flex-col gap-3 text-right">
                   <p className="text-gray-light text-sm leading-5 max-w-44 text-left">
-                    Prochain renouvellement le 24 Juillet 2024
+                    {isCanceled ? 'Expire le' : 'Prochain renouvellement le'} {formatDateFrench(user?.current_subscription?.end_date)}
+
                   </p>
                   <p className="text-white text-lg leading-[27px] ">
-                    19,99€  <span className="text-gray-light text-base">/ mois</span>
+                    {user?.current_subscription?.plan_price }€  <span className="text-gray-light text-base"> {user?.current_subscription?.interval === "monthly"?'/ mois' :'/ an'}</span>
                   </p>
                 </div>
               </div>
@@ -78,7 +117,12 @@ const ManageSubscriptionPage = () => {
                 <p className="text-gray-text text-sm leading-6">
                   Nombre de matchs restants
                 </p>
-                <p className="text-gray-light text-sm leading-[21px]">12/20 restants</p>
+                <p className="text-gray-light text-sm leading-[21px]">
+                  {isUnlimited 
+                    ? "Illimités" 
+                    : `${usedQuota}/${user?.current_subscription?.plan_quota} restants`
+                  }
+                </p>
               </div>
 
               {/* Progress Bar */}
@@ -100,9 +144,14 @@ const ManageSubscriptionPage = () => {
                  <div className="flex flex-wrap justify-center sm:justify-start sm:flex-nowrap items-center gap-3">
               <button
                 onClick={handleCancel}
-                className=" w-full sm:w-50 h-12 px-5 bg-[#FFFFFF33] text-white  text-sm rounded-lg leading-6 traking-[0.24px] cursor-pointer"
+                disabled={isCanceled}
+                className={`w-full sm:w-50 h-12 px-5 text-white text-sm rounded-lg leading-6 traking-[0.24px] ${isCanceled ?'cursor-not-allowed' : 'cursor-pointer'} transition-all ${
+                  isCanceled 
+                    ? "bg-[#FFFFFF1A] opacity-50 cursor-not-allowed" 
+                    : "bg-[#FFFFFF33] hover:bg-[#FFFFFF4D]"
+                }`}
               >
-                Annuler l'Abonnement
+                {isCanceled ? "Annulation demandée" : "Annuler l'Abonnement"}
               </button>
               
               <button

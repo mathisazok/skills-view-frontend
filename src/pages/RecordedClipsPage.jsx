@@ -198,7 +198,21 @@ const RecordedClipsPage = () => {
                       {clip.teamName}
                     </p>
                   </div>
+                   <button
+                    
+                      className="h-8 px-4 bg- text-white text-xs bg-primary rounded-lg leading-6 traking-[0.24px] cursor-pointer w-full sm:w-auto"
+                    >
+                      Télécharger
+                    </button>
 
+                   <button
+                    
+                      className="h-8 px-4 bg- text-white text-xs bg-[#FFFFFF33] rounded-lg leading-6 traking-[0.24px] cursor-pointer w-full sm:w-auto"
+                    >
+                      Aperçu
+                    </button>
+
+                   
                   {/* Rename Input Section */}
                   {editingClipId === clip.id ? (
                     <div className="flex gap-2 w-full sm:w-auto items-center">

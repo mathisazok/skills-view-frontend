@@ -30,7 +30,7 @@ export const landingPageData = {
     ],
     subtitle: 'Une plateforme tout-en-un pour analyser vos matchs, <br/>suivre vos joueurs et booster vos performances.',
     buttons: [
-      { label: 'Essayer gratuitement', primary: true  , link:'/pricing-2'},
+      { label: 'Essayer gratuitement', primary: true  , link:'/pricing'},
       { label: 'Reserver un visio', primary: false , link:'https://cal.com/mathis-skillsview/30min?overlayCalendar=true'},
     ],
     floatingCard: {
@@ -176,7 +176,7 @@ export const landingPageData = {
     title: 'Rejoignez la nouvelle génération d\'analyse sportive.',
     subtitle: 'Passez au niveau supérieur. Sans effort, sans vous ruiner.',
     buttons: [
-      { label: 'Démarrer maintenant', primary: true , link:'/pricing-2' },
+      { label: 'Démarrer maintenant', primary: true , link:'/pricing' },
       { label: 'Réserver une visio personnalisée', primary: false ,  link:'https://cal.com/mathis-skillsview/30min?overlayCalendar=true' },
     ],
   },

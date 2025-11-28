@@ -4,48 +4,60 @@ import Button from "../components/Button";
 import StatusBadge from "../components/StatusBadge";
 import VideoUploader from "../components/VideoUploader";
 import { useInView } from "../utils/hooks";
-import authService from "../services/authService";
+
 import matchService from "../services/matchService";
 import Logo from "../components/Logo";
 import match from "../assets/match.png";
 import SubscriptionManagement from "../components/SubscriptionManagement";
+import { useAuth } from "../context/AuthContext";
+
+import videoAnalysisService from "../services/videoAnalysisService";
 
 /** Composant OverviewSection - Matches */
 const OverviewSection = () => {
   const [latestMatch, setLatestMatch] = React.useState(null);
+  const [analyses, setAnalyses] = React.useState([]);
   const [titleRef, titleVisible] = useInView();
   const [cardsRef, cardsVisible] = useInView();
   const [videosRef, videosVisible] = useInView();
-  const [videosClip1Ref, videosClip1Visible] = useInView();
-  const [videosClip2Ref, videosClip2Visible] = useInView();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
-    const fetchMatch = async () => {
+    const fetchData = async () => {
       try {
-        const response = await matchService.getLatestMatch();
-        setLatestMatch(response.data);
+        // Fetch matches (keep mock for now if backend not ready for matches)
+        const matchResponse = await matchService.getLatestMatch();
+        setLatestMatch(matchResponse.data);
+
+        // Fetch real video analyses
+        const analysesResponse = await videoAnalysisService.getAnalyses({ page_size: 5 });
+        setAnalyses(analysesResponse.results || []);
       } catch (error) {
-        console.error("Error fetching match:", error);
+        console.error("Error fetching data:", error);
       }
     };
-    fetchMatch();
+    fetchData();
   }, []);
+
+  const getStatusBadge = (status) => {
+    return <StatusBadge status={status} />;
+  };
 
   return (
     <div className="space-y-3 scale-90">
       {/* Video Uploader */}
 
-      <h2
+      {/* <h2
         ref={titleRef}
         className={`sm:text-lg font-alt text-white tracking-[-0.33px] leading-6 mb-4 fade-in-up-scroll ${
           titleVisible ? "visible" : ""
         }`}
       >
         Derniers Matchs
-      </h2>
+      </h2> */}
 
-      {/* Matches Cards */}
-      <div
+      {/* Matches Cards (Keep existing mocks or update if needed) */}
+      {/* <div
         ref={cardsRef}
         className={`grid grid-cols-1 md:grid-cols-3 gap-3 fade-in-up-scroll ${
           cardsVisible ? "visible" : ""
@@ -62,60 +74,7 @@ const OverviewSection = () => {
             </p>
           </div>
         </div>
-        <div className="bg-dark-dashboard rounded-xl p-4 w-full sm:max-w-80">
-          <img src={match} alt="match capture d'ecran" className="w-full" />
-          <div className="mt-3">
-            <p className="text-gray-text font-alt leading-5">
-              PSG vs Marseille
-            </p>
-            <p className="text-sm text-gray-light font-alt leading-5">
-              16Oct2023 - Victoire 3-1
-            </p>
-          </div>
-        </div>
-        <div className="bg-dark-dashboard rounded-xl p-4 w-full sm:max-w-80">
-          <img src={match} alt="match capture d'ecran" className="w-full" />
-          <div className="mt-3">
-            <p className="text-gray-text font-alt leading-5">
-              PSG vs Marseille
-            </p>
-            <p className="text-sm text-gray-light font-alt leading-5">
-              16Oct2023 - Victoire 3-1
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Last Match
-      {latestMatch && (
-        <div className="bg-gray-800 rounded-lg p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Dernier match analysé</h2>
-          <div className="space-y-3">
-            <p className="text-gray-300">
-              <span className="font-semibold">{latestMatch.teamName}</span>
-              {' '}
-              vs
-              {' '}
-              <span className="font-semibold">{latestMatch.opponentName}</span>
-            </p>
-            <p className="text-2xl font-bold text-primary">{latestMatch.score}</p>
-            <p className="text-gray-400">{latestMatch.date}</p>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="bg-gray-700 rounded p-3">
-                <p className="text-gray-400 text-sm">Passes réussies</p>
-                <p className="text-2xl font-bold text-white">
-                  {latestMatch.stats.successfulPasses}/{latestMatch.stats.totalPasses}
-                </p>
-              </div>
-              <div className="bg-gray-700 rounded p-3">
-                <p className="text-gray-400 text-sm">Tirs cadrés</p>
-                <p className="text-2xl font-bold text-white">
-                  {latestMatch.stats.shotsOnTarget}/{latestMatch.stats.shots}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div> )} */}
+      </div> */}
 
       <div className="space-y-3 mt-10">
         <h2
@@ -124,76 +83,51 @@ const OverviewSection = () => {
             videosVisible ? "visible" : ""
           }`}
         >
-          Vidéos Enregistrées
+          Derniers Analyses ({analyses.length})
         </h2>
-        {/* match clip */}
 
-        <div
-          ref={videosClip1Ref}
-          className={`flex items-center sm:items-start  bg-dark-dashboard rounded-xl p-4 w-full gap-4 sm:max-h-32 fade-in-up-scroll ${
-            videosClip1Visible ? "visible" : ""
-          }`}
-        >
-          <div className="h-full">
-            <img
-              src={match}
-              alt="match capture d'ecran"
-              className="object-contain max-h-[90px]"
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row w-full">
-            <div className="flex flex-col gap-0.5 flex-1 py-2">
-              <p className="text-gray-text font-alt leading-5">
-                Analyse de match vs PSG
-              </p>
-              <p className="text-sm text-gray-light font-alt leading-5">
-                Envoyé le 17 Oct2023
-              </p>
-              <StatusBadge status="ready" />
+        {analyses.length > 0 ? (
+          analyses.map((analysis, index) => (
+            <div
+              key={analysis.id}
+              className={`flex items-center sm:items-start bg-dark-dashboard rounded-xl p-4 w-full gap-4 sm:max-h-32 fade-in-up-scroll visible`}
+            >
+              <div className="h-full">
+                <img
+                  src={match} // Placeholder image
+                  alt="match capture"
+                  className="object-contain max-h-[90px]"
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row w-full">
+                <div className="flex flex-col gap-0.5 flex-1 py-2">
+                  <p className="text-gray-text font-alt leading-5">
+                    {analysis.original_filename}
+                  </p>
+                  <p className="text-sm text-gray-light font-alt leading-5">
+                    {new Date(analysis.created_at).toLocaleDateString()}
+                  </p>
+                  {getStatusBadge(analysis.status)}
+                </div>
+                <div className="flex gap-1.5 text-xs sm:text-sm sm:self-center">
+                  <button 
+                    onClick={() => navigate('/analysis-results', { state: { analysisId: analysis.id } })}
+                    className="rounded-lg bg-[#FFFFFF1A] px-3 py-2 sm:p-2.5 cursor-pointer hover:bg-[#FFFFFF33] transition-colors"
+                  >
+                    Voir détails
+                  </button>
+                  {analysis.status === 'completed' && (
+                    <button className="rounded-lg bg-[#FFFFFF1A] px-3 py-2 sm:p-2.5 cursor-pointer hover:bg-[#FFFFFF33] transition-colors">
+                      Télécharger
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex gap-1.5 text-xs sm:text-sm sm:self-center">
-              <button className="rounded-lg bg-[#FFFFFF1A] px-3 py-2 sm:p-2.5 cursor-pointer">
-                Telecharger
-              </button>
-              <button className="rounded-lg bg-[#FFFFFF1A] px-3 py-2 sm:p-2.5 cursor-pointer">
-                Suprimmer
-              </button>
-            </div>
-          </div>
-        </div>
-        <div
-          ref={videosClip2Ref}
-          className={`flex items-center sm:items-start  bg-dark-dashboard rounded-xl p-4 w-full gap-4 sm:max-h-32 fade-in-up-scroll ${
-            videosClip2Visible ? "visible" : ""
-          }`}
-        >
-          <div className="h-full">
-            <img
-              src={match}
-              alt="match capture d'ecran"
-              className="object-contain max-h-[90px]"
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row w-full ">
-            <div className="flex flex-col gap-0.5 flex-1 py-2">
-              <p className="text-gray-text font-alt leading-5">
-                Analyse de match vs PSG
-              </p>
-              <p className="text-sm text-gray-light font-alt leading-5">
-                Envoyé le 17 Oct2023
-              </p>
-              <StatusBadge status="processing" />
-            </div>
-            <div className="flex gap-1.5 text-xs sm:text-sm sm:self-center ">
-              <button className="rounded-lg bg-[#FFFFFF1A] px-3 py-2 sm:p-2.5 cursor-pointer">
-                Telecharger
-              </button>
-              <button className="rounded-lg bg-[#FFFFFF1A] px-3 py-2 sm:p-2.5 cursor-pointer">
-                Suprimmer
-              </button>
-            </div>
-          </div>
-        </div>
+          ))
+        ) : (
+          <p className="text-gray-400">Aucune vidéo analysée pour le moment.</p>
+        )}
       </div>
     </div>
   );
@@ -202,17 +136,22 @@ const OverviewSection = () => {
 /** Dashboard Page principale */
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const user = authService.getCurrentUser();
+  const { user, isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
   const [uploaderRef, uploaderVisible] = useInView();
   const [subscriptionRef, subscriptionVisible] = useInView();
 
   // Redirection si pas authentifié
   React.useEffect(() => {
-    if (!authService.isAuthenticated()) {
-      window.location.href = "/login";
+    if (!loading && !isAuthenticated) {
+      navigate("/login");
     }
-  }, []);
+  }, [isAuthenticated, loading, navigate]);
 
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center bg-dark text-white">Chargement...</div>;
+  }
+ console.log(user)
   return (
     <div className="flex h-full bg-dark overflow-hidden">
       {/* Main Content */}
@@ -229,7 +168,10 @@ const Dashboard = () => {
                 ref={uploaderRef}
                 className={`fade-in-left-scroll ${uploaderVisible ? "visible" : ""}`}
               >
-                <VideoUploader />
+                <VideoUploader 
+                  quotaRemaining={user?.current_subscription?.quota_remaining}
+                  planQuota={user?.current_subscription?.plan_quota}
+                />
               </div>
               <div
                 ref={subscriptionRef}
@@ -237,7 +179,7 @@ const Dashboard = () => {
                   subscriptionVisible ? "visible" : ""
                 }`}
               >
-                <SubscriptionManagement />
+                <SubscriptionManagement planTitle={user?.current_subscription?.plan_name}  videosLimit={user?.current_subscription?.plan_quota} videoRemaining={user?.current_subscription?.quota_remaining} />
               </div>
             </div>
             {/* Right Column - Stacked Components (2/3 width on desktop) */}

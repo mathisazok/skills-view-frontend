@@ -50,7 +50,7 @@ function App() {
 
           {/* Subscription Pricing */}
           <Route path="/pricing" element={<SubscriptionPricingPage />} />
-          <Route path="/pricing-2" element={<SubscriptionPricingPageTwo />} />
+          {/* <Route path="/pricing-2" element={<SubscriptionPricingPageTwo />} /> */}
 
           {/* Analysis Results */}
           <Route path="/analysis-results" element={<AnalysisResultsPage />} />

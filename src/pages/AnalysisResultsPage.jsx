@@ -1,42 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useInView } from '../utils/hooks';
 import Logo from '../components/Logo';
+import videoAnalysisService from '../services/videoAnalysisService';
 
 const AnalysisResultsPage = () => {
   const [containerRef, containerVisible] = useInView();
   const [selectedTeam, setSelectedTeam] = useState('Équipe A');
   const [selectedGroup, setSelectedGroup] = useState('Collectif');
+  
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [analysis, setAnalysis] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock video clips data
-  const videoClips = [
-    {
-      id: 1,
-      name: 'passing-1.mp4',
-      type: 'passing',
-      players: ['M', 'M'],
-    },
-    {
-      id: 2,
-      name: 'interception_1.mp4',
-      type: 'interception',
-      players: ['M'],
-    },
-    {
-      id: 3,
-      name: 'dribble-2.mp4',
-      type: 'dribble',
-      players: ['M'],
-    },
-    {
-      id: 4,
-      name: 'goal-1.mp4',
-      type: 'goal',
-      players: [],
-    },
-  ];
+  useEffect(() => {
+    const fetchAnalysis = async () => {
+      const analysisId = location.state?.analysisId;
+      
+      if (!analysisId) {
+        // If no ID provided, maybe fetch latest or show empty state
+        // For now, we'll just stop loading
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await videoAnalysisService.getAnalysisDetails(analysisId);
+        setAnalysis(data);
+      } catch (err) {
+        console.error("Error fetching analysis:", err);
+        setError("Impossible de charger l'analyse.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalysis();
+  }, [location.state]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-dark flex items-center justify-center text-white">
+        Chargement de l'analyse...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-dark flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
+  }
+
+  // Use real data if available, otherwise fallback to empty or mocks if preferred
+  // For this implementation, we'll try to map real data
+  const events = analysis?.metadata?.events || [];
+  
+  // Transform events to clips format if needed
+  const videoClips = events.map((event, index) => ({
+    id: index,
+    name: `${event.type} - ${event.start_time_s.toFixed(1)}s`,
+    type: event.type,
+    players: event.meta_tid ? [`#${event.meta_tid}`] : [],
+    url: analysis?.clips_zip_url // This is the ZIP, individual clips might need different handling if not unzipped
+  }));
 
   return (
-
       <div className="min-h-screen bg-dark overflow-hidden ">
       <div className="fixed">
         <Logo />
@@ -59,7 +92,7 @@ const AnalysisResultsPage = () => {
           <div className="rounded-lg p-6 border border-[#FFFFFF1A]" style={{ backgroundColor: '#00000033' }}>
             <h3 className="text-gray-text text-lg tracking-[-0.36px]">Votre Analyse Détaillée</h3>
             <p className="text-gray-light text-sm mb-4 leading-6">
-              Sélectionnez une équipe pour télécharger l'analyse PDF correspondante.
+              {analysis ? `Fichier: ${analysis.original_filename}` : "Sélectionnez une équipe pour télécharger l'analyse PDF correspondante."}
             </p>
         <div className="flex w-full flex-col sm:flex-row  justify-between sm:items-end gap-4">
             <div className=" flex flex-col flex-1 items-start gap-1.5">
@@ -70,8 +103,8 @@ const AnalysisResultsPage = () => {
                 className="w-full  h-10 px-4 rounded-lg text-white text-sm"
                 style={{
                    backgroundColor: '#FFFFFF1A',
-                  borderTop: '1px solid #FFFFFF33',
-                  border: '1px solid #FFFFFF33',
+                   borderTop: '1px solid #FFFFFF33',
+                   border: '1px solid #FFFFFF33',
                 }}
               >
                 <option value="Équipe A">Équipe A</option>
@@ -94,7 +127,7 @@ const AnalysisResultsPage = () => {
 
           {/* Video Clips Section */}
           <div className="rounded-lg p-6 mb-10 border border-[#FFFFFF1A]" style={{ backgroundColor: '#00000033' }}>
-            <h3 className="text-white text-xl leading-8 traking-[-0.36px]">Clips Vidéos</h3>
+            <h3 className="text-white text-xl leading-8 traking-[-0.36px]">Clips Vidéos ({videoClips.length})</h3>
             <p className="text-gray-light text-sm mb-4 leading-6">
               Filtrez et visionnez les clips par équipe et par joueur.
             </p>
@@ -110,8 +143,8 @@ const AnalysisResultsPage = () => {
                 className="w-full  h-10 px-4 rounded-lg text-white text-sm"
                 style={{
                    backgroundColor: '#FFFFFF1A',
-                  borderTop: '1px solid #FFFFFF33',
-                  border: '1px solid #FFFFFF33',
+                   borderTop: '1px solid #FFFFFF33',
+                   border: '1px solid #FFFFFF33',
                 }}
               >
                 <option value="Équipe A">Équipe A</option>
@@ -127,8 +160,8 @@ const AnalysisResultsPage = () => {
                   className="w-full h-10 px-4 rounded-lg text-white text-sm"
                   style={{
                    backgroundColor: '#FFFFFF1A',
-                  borderTop: '1px solid #FFFFFF33',
-                  border: '1px solid #FFFFFF33',
+                   borderTop: '1px solid #FFFFFF33',
+                   border: '1px solid #FFFFFF33',
                 }}
                 >
                   <option value="Collectif">Collectif</option>
@@ -141,31 +174,50 @@ const AnalysisResultsPage = () => {
 
             {/* Video Clips List */}
             <div className="space-y-4 mb-6">
-              {videoClips.map((clip) => (
-                <div
-                  key={clip.id}
-                  className="rounded-lg p-4 flex items-center justify-between"
-                   style={{
-                   backgroundColor: '#FFFFFF1A',
- 
-                }}
-                >
-                  <div className="flex items-center gap-3 flex-1">
-                    <span className="text-white text-sm">{clip.name}</span>
-                  </div>  
-             
-                </div>
-              ))}
+              {videoClips.length > 0 ? (
+                videoClips.map((clip) => (
+                  <div
+                    key={clip.id}
+                    className="rounded-lg p-4 flex items-center justify-between"
+                     style={{
+                     backgroundColor: '#FFFFFF1A',
+   
+                  }}
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <span className="text-white text-sm">{clip.name}</span>
+                      {clip.players.length > 0 && (
+                        <span className="text-gray-400 text-xs">({clip.players.join(', ')})</span>
+                      )}
+                    </div>  
+               
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-400 text-center py-4">Aucun clip détecté ou analyse en cours.</p>
+              )}
             </div>
 
             {/* Download Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button className="px-6 py-2 rounded-lg font-medium text-sm transition-all bg-primary text-white h-10 cursor-pointer">
-                Télécharger le MP4
-              </button>
-              <button className="px-6 py-2 rounded-lg font-medium text-sm transition-all bg-primary text-white h-10 cursor-pointer">
-                Tout télécharger
-              </button>
+              {analysis?.video_url && (
+                <a 
+                  href={analysis.video_url} 
+                  download 
+                  className="flex items-center justify-center px-6 py-2 rounded-lg font-medium text-sm transition-all bg-primary text-white h-10 cursor-pointer"
+                >
+                  Télécharger la vidéo
+                </a>
+              )}
+              {analysis?.clips_zip_url && (
+                <a 
+                  href={analysis.clips_zip_url} 
+                  download 
+                  className="flex items-center justify-center px-6 py-2 rounded-lg font-medium text-sm transition-all bg-primary text-white h-10 cursor-pointer"
+                >
+                  Tout télécharger (ZIP)
+                </a>
+              )}
             </div>
           </div>
         </div>

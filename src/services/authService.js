@@ -1,20 +1,8 @@
 import axiosInstance from './axiosInstance';
 
 /**
- * Service d'authentification - Mock pour maintenant
- * À intégrer avec le backend réel lors du développement
+ * Service d'authentification - Intégré avec le backend Django
  */
-
-// Mock users storage (remplacer par appel API réel)
-const mockUsers = [
-  {
-    id: 1,
-    name: 'John Doe',
-    email: 'ilyes@gmail.com',
-    password: '12345678',
-    clubName: 'FC Paris',
-  },
-];
 
 export const authService = {
   /**
@@ -25,48 +13,124 @@ export const authService = {
    */
   login: async (email, password) => {
     try {
-      // Mock API call - remplacer par:
-      // const response = await axiosInstance.post('/auth/login', { email, password });
+      // Call the JWT login endpoint
+      const response = await axiosInstance.post('/login/', { email, password });
       
-      const user = mockUsers.find((u) => u.email === email && u.password === password);
-      if (!user) {
-        throw new Error('Identifiants invalides');
-      }
+      const { access, refresh } = response.data;
+      
+      // Store tokens in localStorage
+      localStorage.setItem('accessToken', access);
+      localStorage.setItem('refreshToken', refresh);
+      
+      // Fetch user profile
+      const userProfile = await authService.getCurrentUserProfile();
+      
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(userProfile));
 
-      const mockToken = `token_${Date.now()}`;
-      localStorage.setItem('authToken', mockToken);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      return { success: true, user, token: mockToken };
+      return { success: true, user: userProfile, token: access };
     } catch (error) {
       console.error('Login error:', error);
-      throw error;
+      
+      // Handle specific error messages from backend
+      if (error.response?.status === 401) {
+        throw new Error('Identifiants invalides');
+      } else if (error.response?.data?.detail) {
+        throw new Error(error.response.data.detail);
+      } else {
+        throw new Error('Erreur de connexion. Veuillez réessayer.');
+      }
     }
   },
 
   /**
    * Inscription nouvel utilisateur
-   * @param {object} userData - { name, email, password, clubName }
+   * @param {object} userData - { name, email, password, password_confirm, club_name }
    * @returns {Promise}
    */
   signup: async (userData) => {
     try {
-      // Mock API call - remplacer par:
-      // const response = await axiosInstance.post('/auth/signup', userData);
-      
-      const newUser = {
-        id: mockUsers.length + 1,
-        ...userData,
+      // Map frontend field names to backend field names
+      const registrationData = {
+        email: userData.email,
+        password: userData.password,
+        password_confirm: userData.password_confirm,
+        name: userData.name,
+        club_name: userData.clubName,
       };
-      mockUsers.push(newUser);
-
-      const mockToken = `token_${Date.now()}`;
-      localStorage.setItem('authToken', mockToken);
-      localStorage.setItem('user', JSON.stringify(newUser));
-
-      return { success: true, user: newUser, token: mockToken };
+      
+      // Call the registration endpoint
+      const response = await axiosInstance.post('/users/register/', registrationData);
+      
+      // Return the newly created user data
+      return response.data;
     } catch (error) {
       console.error('Signup error:', error);
+      
+      // Handle validation errors from backend
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Check for specific field errors
+        if (errorData.email) {
+          throw new Error(`Email: ${errorData.email[0]}`);
+        } else if (errorData.password) {
+          throw new Error(`Mot de passe: ${errorData.password[0]}`);
+        } else if (errorData.password_confirm) {
+          throw new Error(`Confirmation: ${errorData.password_confirm[0]}`);
+        } else if (errorData.name) {
+          throw new Error(`Nom: ${errorData.name[0]}`);
+        } else if (errorData.club_name) {
+          throw new Error(`Club: ${errorData.club_name[0]}`);
+        } else if (errorData.detail) {
+          throw new Error(errorData.detail);
+        } else {
+          throw new Error('Erreur lors de l\'inscription. Veuillez vérifier vos informations.');
+        }
+      } else {
+        throw new Error('Erreur de connexion au serveur. Veuillez réessayer.');
+      }
+    }
+  },
+
+  /**
+   * Récupérer le profil de l'utilisateur connecté
+   * @returns {Promise}
+   */
+  getCurrentUserProfile: async () => {
+    try {
+      const response = await axiosInstance.get('/users/me/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Rafraîchir le token d'accès
+   * @returns {Promise}
+   */
+  refreshToken: async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+      
+      const response = await axiosInstance.post('/token/refresh/', {
+        refresh: refreshToken,
+      });
+      
+      const { access } = response.data;
+      localStorage.setItem('accessToken', access);
+      
+      return access;
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      // Clear tokens and redirect to login
+      authService.logout();
       throw error;
     }
   },
@@ -75,12 +139,13 @@ export const authService = {
    * Déconnexion
    */
   logout: () => {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
   },
 
   /**
-   * Récupérer l'utilisateur actuel
+   * Récupérer l'utilisateur actuel depuis le localStorage
    */
   getCurrentUser: () => {
     const user = localStorage.getItem('user');
@@ -91,7 +156,21 @@ export const authService = {
    * Vérifier si l'utilisateur est connecté
    */
   isAuthenticated: () => {
-    return !!localStorage.getItem('authToken');
+    return !!localStorage.getItem('accessToken');
+  },
+
+  /**
+   * Obtenir le token d'accès
+   */
+  getAccessToken: () => {
+    return localStorage.getItem('accessToken');
+  },
+
+  /**
+   * Obtenir le token de rafraîchissement
+   */
+  getRefreshToken: () => {
+    return localStorage.getItem('refreshToken');
   },
 };
 
