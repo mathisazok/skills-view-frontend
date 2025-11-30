@@ -215,7 +215,7 @@ const ComingSoon = () => {
       </div>
 
       <footer style={{
-        fontSize: '0.8rem',
+         fontSize: '0.8rem',
         color: 'rgba(255,255,255,0.75)',
         margin: '20px'
       }}>

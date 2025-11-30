@@ -21,9 +21,9 @@ function App() {
   const launchDate = new Date("2025-12-05T00:00:00"); // Date prévue du lancement
   const now = new Date();
 
-  if (now < launchDate) {
-    return <ComingSoon />;
-  }
+  // if (now < launchDate) {
+  //   return <ComingSoon />;
+  // }
 
   return (
     <Router>
