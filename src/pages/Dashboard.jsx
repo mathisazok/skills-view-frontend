@@ -151,7 +151,6 @@ const Dashboard = () => {
   if (loading) {
     return <div className="flex h-screen items-center justify-center bg-dark text-white">Chargement...</div>;
   }
- console.log(user)
   return (
     <div className="flex h-full bg-dark overflow-hidden">
       {/* Main Content */}

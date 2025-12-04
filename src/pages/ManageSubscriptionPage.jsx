@@ -51,7 +51,6 @@ function formatDateFrench(dateString) {
 }
 
 
-  console.log(user?.current_subscription);
 
   // Check if subscription is canceled (auto_renew is false)
   const isCanceled = !user?.current_subscription?.auto_renew;
