@@ -99,11 +99,15 @@ const videoAnalysisService = {
    */
   downloadPDF: async (id, type) => {
     try {
+      const token = localStorage.getItem('accessToken');
       const response = await axiosInstance.get(
         `video-analysis/${id}/download_pdf/`,
         {
           params: { type },
           responseType: 'blob', // Important for file download
+          headers: {
+            'Authorization': `Bearer ${token}` // Explicitly add token for blob requests
+          }
         }
       );
       return response.data;

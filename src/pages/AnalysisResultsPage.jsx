@@ -63,53 +63,44 @@ const AnalysisResultsPage = () => {
   }, [analysis?.status, analysis?.id]);
 
   const handleDownloadPDF = async () => {
-    if (!analysis?.id) return;
+    if (!analysis?.id || !analysis?.metadata?.reports) return;
     
-    // Map selection to report type
-    // Équipe A -> Home
-    // Équipe B -> Away
-    let reportType = 'Home';
+    // Map selection to report filename pattern
+    let targetFilename = 'Home_COMPREHENSIVE_REPORT.pdf';
     if (selectedTeam === 'Équipe B') {
-      reportType = 'Away';
-    } else if (selectedTeam !== 'Équipe A') {
-      // Default or handle other cases if needed
-      console.warn('Unknown team selection, defaulting to Home');
+      targetFilename = 'Away_COMPREHENSIVE_REPORT.pdf';
     }
     
-    try {
-      console.log(`Downloading PDF for analysis ${analysis.id}, type: ${reportType}`);
-      const blob = await videoAnalysisService.downloadPDF(analysis.id, reportType);
+    // Find the PDF in metadata.reports
+    const reports = analysis.metadata.reports || [];
+    const targetReport = reports.find(report => 
+      report.filename && report.filename.toLowerCase() === targetFilename.toLowerCase()
+    );
+    
+    if (!targetReport || !targetReport.url) {
+      // Fallback: try other filename formats
+      const alternativeNames = [
+        `${selectedTeam === 'Équipe B' ? 'Away' : 'Home'}_report.pdf`,
+        `${selectedTeam === 'Équipe B' ? 'Team' : 'Team'}_report.pdf`
+      ];
       
-      // Create temp URL and trigger download
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${reportType}_COMPREHENSIVE_REPORT.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      const fallbackReport = reports.find(report =>
+        alternativeNames.some(name => report.filename?.toLowerCase() === name.toLowerCase())
+      );
       
-      console.log(`PDF downloaded successfully: ${reportType}_COMPREHENSIVE_REPORT.pdf`);
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      console.error('Error response:', error.response?.data);
-      
-      // Show more detailed error message
-      let errorMsg = 'Erreur lors du téléchargement du PDF. ';
-      if (error.response?.status === 404) {
-        errorMsg += `Le rapport "${reportType}" n'a pas été trouvé. `;
-        if (error.response?.data?.available_reports) {
-          errorMsg += `Rapports disponibles: ${error.response.data.available_reports.join(', ')}`;
-        }
-      } else if (error.response?.data?.error) {
-        errorMsg += error.response.data.error;
-      } else {
-        errorMsg += 'Vérifiez que l\'analyse est complète.';
+      if (!fallbackReport) {
+        alert(`PDF non trouvé. Rapports disponibles: ${reports.map(r => r.filename).join(', ')}`);
+        return;
       }
       
-      alert(errorMsg);
+      // Use fallback
+      window.open(fallbackReport.url, '_blank');
+      return;
     }
+    
+    // Download directly from Cloudinary
+    window.open(targetReport.url, '_blank');
+    console.log(`Opening PDF: ${targetReport.filename} from ${targetReport.url}`);
   };
 
   const handleDownloadZIP = async () => {
