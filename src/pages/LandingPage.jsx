@@ -1,15 +1,63 @@
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import ServiceCard from '../components/ServiceCard';
 import ReviewCard from '../components/ReviewCard';
 import PricingCard from '../components/PricingCard';
 import { landingPageData } from '../utils/mockData';
 import { useInView } from '../utils/hooks';
+import subscriptionService from '../services/subscriptionService';
 import database from '../assets/icon_database.png';
 import notification from '../assets/icon_notification.png';
 import underline from '../assets/underline_hero_title.png';
 import BarChart from '../assets/bar-chart.png';
 const LandingPage = () => {
   const { hero, services, features, reviews, pricing, cta,  } = landingPageData;
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+  const [actionLoading, setActionLoading] = useState(false);
+
+    // Handle subscription button click (same logic as SubscriptionPricingPage)
+  const handleSubscribe = async (planId) => {
+    if (!isAuthenticated) {
+      // Redirect to login with plan selection
+      navigate(`/login?plan=${planId}&interval=monthly`);
+      return;
+    }
+
+    // User is logged in
+    const currentPlanId = user?.current_subscription?.plan_id;
+    
+    if (currentPlanId === planId) {
+      // Same plan, show message
+      alert('Vous êtes déjà abonné à ce plan');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const result = await subscriptionService.changePlan(
+        planId,
+        'monthly'
+      );
+      
+      // Check if we need to redirect to Stripe checkout
+      if (result.checkout_url) {
+        window.location.href = result.checkout_url;
+        return;
+      }
+      
+      // Redirect to dashboard after successful plan change (Mock mode or Free plan)
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error changing plan:', error);
+      const errorMessage = error.response?.data?.detail || 'Erreur lors du changement de plan';
+      alert(errorMessage);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   // Références pour les sections avec animations
   const [heroTitleRef, heroTitleVisible] = useInView();
@@ -133,6 +181,7 @@ const LandingPage = () => {
                 key={plan.id}
                 plan={plan}
                 index={idx}
+                onSubscribe={handleSubscribe}
               />
             ))}
           </div>
@@ -212,7 +261,7 @@ const ReviewCardWithAnimation = ({ review, isMiddle, index }) => {
 };
 
 // Composant wrapper pour les cartes de pricing avec animation
-const PricingCardWithAnimation = ({ plan, index }) => {
+const PricingCardWithAnimation = ({ plan, index, onSubscribe }) => {
   const [ref, isVisible] = useInView();
   return (
     <div
@@ -229,6 +278,8 @@ const PricingCardWithAnimation = ({ plan, index }) => {
         isPopular={plan.popular}
         isFree={plan.free}
         description={plan.description}
+        planId={plan.id}
+        onSubscribe={onSubscribe}
       />
     </div>
   );

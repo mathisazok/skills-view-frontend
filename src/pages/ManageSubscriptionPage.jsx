@@ -33,10 +33,14 @@ const ManageSubscriptionPage = () => {
     }
   };
   
+
+    
   // Check if plan is unlimited
   const isUnlimited = user?.current_subscription?.plan_name === "Ultimate" || user?.current_subscription?.plan_quota === 0;
   const usedQuota = user?.current_subscription?.quota_used || 0;
-  const progressPercentage = isUnlimited ? 100 : ((usedQuota / user?.current_subscription?.plan_quota) * 100);
+  const totalQuota = user?.current_subscription?.plan_quota || 1;
+  const remainingQuota = totalQuota - usedQuota;
+  const progressPercentage = isUnlimited ? 100 : ((usedQuota / totalQuota) * 100);
   
 function formatDateFrench(dateString) {
   if (!dateString) return '';
@@ -119,7 +123,7 @@ function formatDateFrench(dateString) {
                 <p className="text-gray-light text-sm leading-[21px]">
                   {isUnlimited 
                     ? "Illimités" 
-                    : `${usedQuota}/${user?.current_subscription?.plan_quota} restants`
+                    : `${remainingQuota}/${totalQuota} restants`
                   }
                 </p>
               </div>

@@ -1,6 +1,13 @@
 
 import check from '../assets/Check.svg';
-const PricingCard = ({ name, price, period,  features, cta, description , isPopular = false , isFree= false, savings = null }) => {
+const PricingCard = ({ name, price, period,  features, cta, description , isPopular = false , isFree= false, savings = null, planId = null, onSubscribe = null }) => {
+  
+  const handleClick = () => {
+    if (onSubscribe && planId) {
+      onSubscribe(planId);
+    }
+  };
+  
   return (
     <div
       className={`rounded-xl p-5 h-full flex flex-col bg-white max-w-[340px] sm:max-w-90 w-full sm:min-w-64  ${
@@ -27,6 +34,7 @@ const PricingCard = ({ name, price, period,  features, cta, description , isPopu
         </div>
         <p className="text-sm mt-4 ">{description}</p>
          <button
+         onClick={handleClick}
         className={`w-full min-h-10 px-4 rounded-xl font-semibold transition-all duration-300 text-sm mt-3 cursor-pointer ${
           isPopular
             ? 'bg-primary text-white hover:bg-opacity-90'
