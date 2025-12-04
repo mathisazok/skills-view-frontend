@@ -139,7 +139,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ===== REVIEWS SECTION ===== */}
+      {/* ===== REVIEWS SECTION =====
       <section id="reviews" className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-dark">
         <div className="lg:container mx-auto lg:px-30">
           <div ref={reviewsRef} className="text-center mb-8 sm:mb-12">
@@ -152,7 +152,7 @@ const LandingPage = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
    
       {/* ===== CTA SECTION ===== */}
