@@ -13,7 +13,6 @@ export const authService = {
    */
   login: async (email, password) => {
     try {
-      console.log("ENV API URL =", import.meta.env.VITE_API_URL);
       // Call the JWT login endpoint
       const response = await axiosInstance.post('login/', { email, password });
       

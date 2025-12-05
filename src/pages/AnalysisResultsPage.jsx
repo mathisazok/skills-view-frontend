@@ -155,9 +155,7 @@ const AnalysisResultsPage = () => {
   // Transform events to clips format if needed
   const  videoClips = events.map((event, index) => ({
     id: index,
-    name: `${event.type} - ${event.start_time_s.toFixed(1)}s`,
-    type: event.type,
-    players: event.meta_tid ? [`#${event.meta_tid}`] : [],
+    name: event.filename || `${event.type} - Clip ${index + 1}`,
     type: event.type,
     players: event.meta_tid ? [`#${event.meta_tid}`] : [],
     url: event.url // Use individual clip URL if available

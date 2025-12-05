@@ -93,7 +93,6 @@ const RecordedClipsPage = () => {
 
   const handleSaveRename = (clipId, currentTitle) => {
     const newTitle = renameValues[clipId] || currentTitle;
-    console.log(`Clip ${clipId} renamed to: ${newTitle}`);
     setEditingClipId(null);
     setRenameValues((prev) => ({
       ...prev,
