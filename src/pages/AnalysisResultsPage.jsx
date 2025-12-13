@@ -253,8 +253,8 @@ const AnalysisResultsPage = () => {
            
             </div>
 
-            {/* Video Clips List */}
-            <div className="space-y-4 mb-6">
+            {/* Video Clips List - Scrollable container showing ~4 clips */}
+            <div className="space-y-4 mb-6 max-h-96 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
               {videoClips.length > 0 ? (
                 videoClips.map((clip) => (
                   <div

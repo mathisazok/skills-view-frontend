@@ -15,6 +15,7 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
   const [analysisId, setAnalysisId] = useState(null);
+  const [videoSizeBytes, setVideoSizeBytes] = useState(null);
 
   const handleBrowseClick = () => {
     fileInputRef.current?.click();
@@ -42,6 +43,7 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
     setModalStatus('uploading');
     setProgress(10);
     setMessage("Upload de la vidéo en cours...");
+    setVideoSizeBytes(file.size);
 
     try {
       // Upload video
@@ -151,6 +153,7 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
           progress={progress}
           message={message}
           onClose={handleCloseModal}
+          videoSizeBytes={videoSizeBytes}
         />
       )}
     </>

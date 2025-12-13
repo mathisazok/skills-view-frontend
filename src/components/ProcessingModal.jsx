@@ -1,8 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-const ProcessingModal = ({ status, progress, message, onClose }) => {
+const ProcessingModal = ({ status, progress, message, onClose, videoSizeBytes }) => {
   const [show, setShow] = useState(false);
+
+  // Calculate estimated time: 200MB = ~2 hours = 120 minutes
+  const getEstimatedTime = () => {
+    if (!videoSizeBytes) return null;
+    const sizeInMB = videoSizeBytes / (1024 * 1024);
+    const estimatedMinutes = Math.round((sizeInMB / 200) * 120);
+    
+    // Cap at 10 hours
+    if (estimatedMinutes >= 600) {
+      return "+10h";
+    }
+    
+    if (estimatedMinutes < 60) {
+      return `~${estimatedMinutes} min`;
+    } else {
+      const hours = Math.floor(estimatedMinutes / 60);
+      const mins = estimatedMinutes % 60;
+      return mins > 0 ? `~${hours}h ${mins}min` : `~${hours}h`;
+    }
+  };
 
   useEffect(() => {
     setShow(true);
@@ -43,6 +63,8 @@ const ProcessingModal = ({ status, progress, message, onClose }) => {
     }
   };
 
+  const estimatedTime = getEstimatedTime();
+
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300">
       <div className="bg-dark-dashboard border border-gray-700 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-100">
@@ -65,6 +87,13 @@ const ProcessingModal = ({ status, progress, message, onClose }) => {
           <p className="text-gray-300 text-lg">
             {message || 'Veuillez patienter pendant que nous traitons votre vidéo.'}
           </p>
+
+          {/* Estimated Time (during processing) */}
+          {status === 'processing' && estimatedTime && (
+            <p className="text-gray-400 text-sm">
+              ⏱️ Temps estimé : <span className="text-primary font-semibold">{estimatedTime}</span>
+            </p>
+          )}
 
           {/* Progress Bar (for processing) */}
           {(status === 'processing' || status === 'uploading') && (
