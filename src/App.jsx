@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import Layout from './components/Layout';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
@@ -29,21 +28,10 @@ function App() {
   return (
     <Router>
       <div className="flex flex-col min-h-screen bg-dark">
-        {/* Routes avec Navbar et Footer */}
+        {/* Routes avec Layout component pour réduire la duplication */}
         <Routes>
           {/* Landing Page */}
-          <Route
-            path="/"
-            element={
-              <>
-                <Navbar />
-                <main className="grow">
-                  <LandingPage />
-                </main>
-                <Footer />
-              </>
-            }
-          />
+          <Route path="/" element={<Layout><LandingPage /></Layout>} />
 
           {/* Login/Signup Page */}
           <Route path="/login" element={<LoginPage />} />
@@ -65,40 +53,17 @@ function App() {
           <Route path="/analysis-results" element={<AnalysisResultsPage />} />
 
           {/* Legal Notice */}
-          <Route
-            path="/legal-notice"
-            element={
-              <>
-                <Navbar />
-                <main className="grow">
-                  <LegalNotice />
-                </main>
-                <Footer />
-              </>
-            }
-          />
+          <Route path="/legal-notice" element={<Layout><LegalNotice /></Layout>} />
 
           {/* Terms of Use */}
-          <Route
-            path="/terms-of-use"
-            element={
-              <>
-                <Navbar />
-                <main className="grow">
-                  <TermsOfUse />
-                </main>
-                <Footer />
-              </>
-            }
-          />
+          <Route path="/terms-of-use" element={<Layout><TermsOfUse /></Layout>} />
 
           {/* 404 - Page non trouvée */}
           <Route
             path="*"
             element={
-              <>
-                <Navbar />
-                <main className="grow flex items-center justify-center">
+              <Layout>
+                <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 300px)' }}>
                   <div className="text-center">
                     <h1 className="text-4xl font-bold text-white mb-4">404</h1>
                     <p className="text-gray-300 mb-6">Page non trouvée</p>
@@ -109,9 +74,8 @@ function App() {
                       Retour à l'accueil
                     </a>
                   </div>
-                </main>
-                <Footer />
-              </>
+                </div>
+              </Layout>
             }
           />
         </Routes>

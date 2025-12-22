@@ -12,6 +12,70 @@ import database from '../assets/icon_database.png';
 import notification from '../assets/icon_notification.png';
 import underline from '../assets/underline_hero_title.png';
 import BarChart from '../assets/bar-chart.png';
+
+// Composant wrapper pour les cartes de service avec animation - Déplacé avant LandingPage pour éviter la recréation
+const ServiceCardWithAnimation = ({ service, index }) => {
+  const [ref, isVisible] = useInView();
+  return (
+    <div
+      ref={ref}
+      className={`scale-in-scroll ${isVisible ? 'visible' : ''}`}
+      style={{ transitionDelay: `${index * 0.1}s` }}
+    >
+      <ServiceCard
+        title={service.title}
+        description={service.description}
+        icon={service.icon}
+      />
+    </div>
+  );
+};
+
+// Composant wrapper pour les cartes de review avec animation
+const ReviewCardWithAnimation = ({ review, isMiddle, index }) => {
+  const [ref, isVisible] = useInView();
+  return (
+    <div
+      ref={ref}
+      className={`fade-in-up-scroll ${isVisible ? 'visible' : ''}`}
+      style={{ transitionDelay: `${index * 0.1}s` }}
+    >
+      <ReviewCard
+        text={review.text}
+        author={review.author}
+        team={review.team}
+        image={review.image}
+        isMiddle={isMiddle}
+      />
+    </div>
+  );
+};
+
+// Composant wrapper pour les cartes de pricing avec animation
+const PricingCardWithAnimation = ({ plan, index, onSubscribe }) => {
+  const [ref, isVisible] = useInView();
+  return (
+    <div
+      ref={ref}
+      className={`scale-in-scroll ${isVisible ? 'visible' : ''}`}
+      style={{ transitionDelay: `${index * 0.1}s` }}
+    >
+      <PricingCard
+        name={plan.name}
+        price={plan.price}
+        period={plan.period}
+        features={plan.features}
+        cta={plan.cta}
+        isPopular={plan.popular}
+        isFree={plan.free}
+        description={plan.description}
+        planId={plan.id}
+        onSubscribe={onSubscribe}
+      />
+    </div>
+  );
+};
+
 const LandingPage = () => {
   const { hero, services, features, reviews, pricing, cta,  } = landingPageData;
   const navigate = useNavigate();
@@ -218,69 +282,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-    </div>
-  );
-};
-
-// Composant wrapper pour les cartes de service avec animation
-const ServiceCardWithAnimation = ({ service, index }) => {
-  const [ref, isVisible] = useInView();
-  return (
-    <div
-      ref={ref}
-      className={`scale-in-scroll ${isVisible ? 'visible' : ''}`}
-      style={{ transitionDelay: `${index * 0.1}s` }}
-    >
-      <ServiceCard
-        title={service.title}
-        description={service.description}
-        icon={service.icon}
-      />
-    </div>
-  );
-};
-
-// Composant wrapper pour les cartes de review avec animation
-const ReviewCardWithAnimation = ({ review, isMiddle, index }) => {
-  const [ref, isVisible] = useInView();
-  return (
-    <div
-      ref={ref}
-      className={`fade-in-up-scroll ${isVisible ? 'visible' : ''}`}
-      style={{ transitionDelay: `${index * 0.1}s` }}
-    >
-      <ReviewCard
-        text={review.text}
-        author={review.author}
-        team={review.team}
-        image={review.image}
-        isMiddle={isMiddle}
-      />
-    </div>
-  );
-};
-
-// Composant wrapper pour les cartes de pricing avec animation
-const PricingCardWithAnimation = ({ plan, index, onSubscribe }) => {
-  const [ref, isVisible] = useInView();
-  return (
-    <div
-      ref={ref}
-      className={`scale-in-scroll ${isVisible ? 'visible' : ''}`}
-      style={{ transitionDelay: `${index * 0.1}s` }}
-    >
-      <PricingCard
-        name={plan.name}
-        price={plan.price}
-        period={plan.period}
-        features={plan.features}
-        cta={plan.cta}
-        isPopular={plan.popular}
-        isFree={plan.free}
-        description={plan.description}
-        planId={plan.id}
-        onSubscribe={onSubscribe}
-      />
     </div>
   );
 };

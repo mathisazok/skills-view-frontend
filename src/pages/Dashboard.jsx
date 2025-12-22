@@ -23,20 +23,33 @@ const OverviewSection = () => {
   const navigate = useNavigate();
 
   React.useEffect(() => {
+    let isMounted = true; // Flag pour éviter setState sur composant démonté
+
     const fetchData = async () => {
       try {
         // Fetch matches (keep mock for now if backend not ready for matches)
         const matchResponse = await matchService.getLatestMatch();
-        setLatestMatch(matchResponse.data);
 
         // Fetch real video analyses
         const analysesResponse = await videoAnalysisService.getAnalyses({ page_size: 5 });
-        setAnalyses(analysesResponse.results || []);
+
+        // Vérifier que le composant est toujours monté avant de mettre à jour l'état
+        if (isMounted) {
+          setLatestMatch(matchResponse.data);
+          setAnalyses(analysesResponse.results || []);
+        }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        if (isMounted) {
+          console.error("Error fetching data:", error);
+        }
       }
     };
+
     fetchData();
+
+    return () => {
+      isMounted = false; // Cleanup: marquer le composant comme démonté
+    };
   }, []);
 
   const getStatusBadge = (status) => {

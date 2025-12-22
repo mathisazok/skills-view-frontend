@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 
 /**
  * Hook personnalisé pour gérer un formulaire
@@ -17,13 +17,13 @@ export const useForm = (initialValues, onSubmit) => {
       [name]: type === 'checkbox' ? checked : value,
     }));
     // Effacer l'erreur du champ
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
-    }
-  }, [errors]);
+    setErrors((prev) => {
+      if (prev[name]) {
+        return { ...prev, [name]: '' };
+      }
+      return prev;
+    });
+  }, []);
 
   const handleSubmit = useCallback(
     async (e) => {
@@ -176,27 +176,34 @@ export const useInView = (options = {}) => {
   const ref = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
 
+  // Mémoriser les options pour éviter de recréer l'observer
+  const memoizedOptions = useMemo(() => ({
+    threshold: 0.1,
+    ...options,
+  }), [JSON.stringify(options)]);
+
   useEffect(() => {
+    const currentRef = ref.current;
+
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         setIsVisible(true);
-        observer.unobserve(entry.target);
+        if (currentRef) {
+          observer.unobserve(currentRef);
+        }
       }
-    }, {
-      threshold: 0.1,
-      ...options,
-    });
+    }, memoizedOptions);
 
-    if (ref.current) {
-      observer.observe(ref.current);
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
-  }, [options]);
+  }, [memoizedOptions]);
 
   return [ref, isVisible];
 };
