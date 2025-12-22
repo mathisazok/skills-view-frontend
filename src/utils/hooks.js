@@ -124,8 +124,8 @@ export const useAuth = () => {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    const authService = require('../services/authService').default;
+  const logout = useCallback(async () => {
+    const authService = (await import('../services/authService')).default;
     authService.logout();
     setUser(null);
   }, []);

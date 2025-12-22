@@ -17,16 +17,26 @@ export const authService = {
       const response = await axiosInstance.post('login/', { email, password });
       
       const { access, refresh } = response.data;
-      
+
       // Store tokens in localStorage
-      localStorage.setItem('accessToken', access);
-      localStorage.setItem('refreshToken', refresh);
-      
+      try {
+        localStorage.setItem('accessToken', access);
+        localStorage.setItem('refreshToken', refresh);
+      } catch (storageError) {
+        console.error('Error storing tokens in localStorage:', storageError);
+        throw new Error('Impossible de sauvegarder la session. Vérifiez les paramètres du navigateur.');
+      }
+
       // Fetch user profile
       const userProfile = await authService.getCurrentUserProfile();
-      
+
       // Store user data
-      localStorage.setItem('user', JSON.stringify(userProfile));
+      try {
+        localStorage.setItem('user', JSON.stringify(userProfile));
+      } catch (storageError) {
+        console.error('Error storing user data in localStorage:', storageError);
+        // Non-critical, continue anyway
+      }
 
       return { success: true, user: userProfile, token: access };
     } catch (error) {
@@ -114,18 +124,23 @@ export const authService = {
   refreshToken: async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
-      
+
       if (!refreshToken) {
         throw new Error('No refresh token available');
       }
-      
+
       const response = await axiosInstance.post('token/refresh/', {
         refresh: refreshToken,
       });
-      
+
       const { access } = response.data;
-      localStorage.setItem('accessToken', access);
-      
+      try {
+        localStorage.setItem('accessToken', access);
+      } catch (storageError) {
+        console.error('Error storing access token:', storageError);
+        throw new Error('Impossible de sauvegarder le token');
+      }
+
       return access;
     } catch (error) {
       console.error('Token refresh error:', error);
@@ -139,38 +154,65 @@ export const authService = {
    * Déconnexion
    */
   logout: () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
+    try {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+    } catch (error) {
+      console.error('Error clearing localStorage during logout:', error);
+      // Continue anyway - logout should always succeed
+    }
   },
 
   /**
    * Récupérer l'utilisateur actuel depuis le localStorage
    */
   getCurrentUser: () => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    try {
+      const user = localStorage.getItem('user');
+      return user ? JSON.parse(user) : null;
+    } catch (error) {
+      console.error('Error parsing user data from localStorage:', error);
+      // Clear corrupted data
+      localStorage.removeItem('user');
+      return null;
+    }
   },
 
   /**
    * Vérifier si l'utilisateur est connecté
    */
   isAuthenticated: () => {
-    return !!localStorage.getItem('accessToken');
+    try {
+      return !!localStorage.getItem('accessToken');
+    } catch (error) {
+      console.error('Error accessing localStorage:', error);
+      return false;
+    }
   },
 
   /**
    * Obtenir le token d'accès
    */
   getAccessToken: () => {
-    return localStorage.getItem('accessToken');
+    try {
+      return localStorage.getItem('accessToken');
+    } catch (error) {
+      console.error('Error accessing localStorage:', error);
+      return null;
+    }
   },
 
   /**
    * Obtenir le token de rafraîchissement
    */
   getRefreshToken: () => {
-    return localStorage.getItem('refreshToken');
+    try {
+      return localStorage.getItem('refreshToken');
+    } catch (error) {
+      console.error('Error accessing localStorage:', error);
+      return null;
+    }
   },
 };
 
