@@ -117,6 +117,30 @@ const videoAnalysisService = {
     }
   },
 
+  /**
+   * Download ZIP file containing all analysis artifacts
+   * @param {number|string} id - Analysis ID
+   * @returns {Promise} - Blob response containing ZIP file
+   */
+  downloadZIP: async (id) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await axiosInstance.get(
+        `video-analysis/${id}/download_zip/`,
+        {
+          responseType: 'blob', // Important for file download
+          headers: {
+            'Authorization': `Bearer ${token}` // Explicitly add token for blob requests
+          }
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error(`Error downloading ZIP for analysis ID ${id}:`, error);
+      throw error;
+    }
+  },
+
 };
 
 export default videoAnalysisService;

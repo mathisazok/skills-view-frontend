@@ -41,25 +41,40 @@ const AnalysisResultsPage = () => {
 
   // Polling for status updates if processing
   useEffect(() => {
-    let interval;
-    if (analysis?.status === 'processing' || analysis?.status === 'uploading' || analysis?.status === 'pending') {
-      interval = setInterval(async () => {
-        try {
-          if (analysis?.id) {
-            const data = await videoAnalysisService.getAnalysisDetails(analysis.id);
-            setAnalysis(data);
-            
-            // Stop polling if completed or failed
-            if (data.status === 'completed' || data.status === 'failed') {
+    let interval = null;
+    let isMounted = true;
+
+    const pollStatus = async () => {
+      if (!isMounted || !analysis?.id) return;
+
+      try {
+        const data = await videoAnalysisService.getAnalysisDetails(analysis.id);
+        if (isMounted) {
+          setAnalysis(data);
+
+          // Stop polling if completed or failed
+          if (data.status === 'completed' || data.status === 'failed') {
+            if (interval) {
               clearInterval(interval);
+              interval = null;
             }
           }
-        } catch (err) {
-          console.error("Polling error:", err);
         }
-      }, 5000);
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    };
+
+    if (analysis?.status === 'processing' || analysis?.status === 'uploading' || analysis?.status === 'pending') {
+      interval = setInterval(pollStatus, 5000);
     }
-    return () => clearInterval(interval);
+
+    return () => {
+      isMounted = false;
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [analysis?.status, analysis?.id]);
 
   const handleDownloadPDF = async () => {
@@ -148,18 +163,7 @@ const AnalysisResultsPage = () => {
     );
   }
 
-  // Use real data if available, otherwise fallback to empty or mocks if preferred
-  // For this implementation, we'll try to map real data
-  const events = analysis?.metadata?.events || [];
-  
-  // Transform events to clips format if needed
-  const  videoClips = events.map((event, index) => ({
-    id: index,
-    name: event.filename || `${event.type} - Clip ${index + 1}`,
-    type: event.type,
-    players: event.meta_tid ? [`#${event.meta_tid}`] : [],
-    url: event.url // Use individual clip URL if available
-  }));
+  // Removed video clips section as per user request
 
   return (
       <div className="min-h-screen bg-dark overflow-hidden ">
@@ -221,104 +225,7 @@ const AnalysisResultsPage = () => {
               </button>
             </div>
                 </div>
-           
-          </div>
 
-          {/* Video Clips Section */}
-          <div className="rounded-lg p-6 mb-10 border border-[#FFFFFF1A]" style={{ backgroundColor: '#00000033' }}>
-            <h3 className="text-white text-xl leading-8 traking-[-0.36px]">Clips Vidéos ({videoClips.length})</h3>
-            <p className="text-gray-light text-sm mb-4 leading-6">
-              Filtrez et visionnez les clips par équipe.
-            </p>
-
-            {/* Filters */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-{/*            
-    <div className=" flex flex-col flex-1 items-start gap-1.5">
-              <label className="text-white text-sm leading-6 ">Équipe</label>
-              <select
-                value={selectedTeam}
-                onChange={(e) => setSelectedTeam(e.target.value)}
-                className="w-full  h-10 px-4 rounded-lg text-white text-sm"
-                style={{
-                   backgroundColor: '#FFFFFF1A',
-                   borderTop: '1px solid #FFFFFF33',
-                   border: '1px solid #FFFFFF33',
-                }}
-              >
-                <option value="Équipe A">Équipe A</option>
-                <option value="Équipe B">Équipe B</option>
-              </select>
-            </div> */}
-           
-            </div>
-
-            {/* Video Clips List - Scrollable container showing ~4 clips */}
-            <div className="space-y-4 mb-6 max-h-96 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
-              {videoClips.length > 0 ? (
-                videoClips.map((clip) => (
-                  <div
-                    key={clip.id}
-                    className="rounded-lg p-4 flex items-center justify-between"
-                     style={{
-                     backgroundColor: '#FFFFFF1A',
-   
-                  }}
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <span className="text-white text-sm">{clip.name}</span>
-                      {clip.players.length > 0 && (
-                        <span className="text-gray-400 text-xs">({clip.players.join(', ')})</span>
-                      )}
-                    </div>
-                    
-                    {clip.url && (
-                      <div className="w-48 flex flex-col gap-2">
-                        {/* <video 
-                          controls 
-                          src={clip.url} 
-                          className="w-full rounded bg-black"
-                          preload="metadata"
-                        /> */}
-                        <a 
-                          href={clip.url}
-                          download={`clip_${clip.id}.mp4`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-center py-1.5 px-3 rounded bg-[#FFFFFF1A] text-white hover:bg-primary hover:text-white transition-colors"
-                        >
-                          Télécharger le clip
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-400 text-center py-4">Aucun clip détecté ou analyse en cours.</p>
-              )}
-            </div>
-
-            {/* Download Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              {analysis?.video_url && (
-                <a 
-                  href={analysis.video_url} 
-                  download 
-                  className="flex items-center justify-center px-6 py-2 rounded-lg font-medium text-sm transition-all bg-primary text-white h-10 cursor-pointer"
-                >
-                  Télécharger la vidéo
-                </a>
-              )}
-              {analysis?.clips_zip_url && (
-                <a 
-                  href={analysis.clips_zip_url} 
-                  download 
-                  className="flex items-center justify-center px-6 py-2 rounded-lg font-medium text-sm transition-all bg-primary text-white h-10 cursor-pointer"
-                >
-                  Tout télécharger (ZIP)
-                </a>
-              )}
-            </div>
           </div>
         </div>
       </main>
