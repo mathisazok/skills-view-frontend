@@ -1,0 +1,78 @@
+name: 🚀 Deploy to cPanel O2 Switch
+
+on:
+  push:
+    branches:
+      - main  # Déclenche le déploiement sur push vers main
+  workflow_dispatch:  # Permet de lancer manuellement le workflow
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to cPanel
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout du code
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # 3. Installation des dépendances
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      # 4. Build de l'application
+      - name: 🏗️ Build application
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      # 5. Vérification du build
+      - name: ✅ Verify build
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "❌ Build failed: dist directory not found"
+            exit 1
+          fi
+          echo "✓ Build successful"
+          echo "Build size: $(du -sh dist | cut -f1)"
+
+      # 6. Déploiement via FTP
+      - name: 🚀 Deploy to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          dangerous-clean-slate: false  # Ne pas supprimer les fichiers non présents localement
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            .env*
+
+      # 7. Notification de succès
+      - name: 🎉 Deployment successful
+        if: success()
+        run: |
+          echo "════════════════════════════════════"
+          echo "✅ Déploiement réussi !"
+          echo "🌐 Votre site est maintenant en ligne"
+          echo "════════════════════════════════════"
+
+      # 8. Notification d'échec
+      - name: ❌ Deployment failed
+        if: failure()
+        run: |
+          echo "════════════════════════════════════"
+          echo "❌ Le déploiement a échoué"
+          echo "Vérifiez les logs ci-dessus"
+          echo "════════════════════════════════════"
