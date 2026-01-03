@@ -36,10 +36,26 @@ export const subscriptionService = {
       if (newInterval) {
         payload.new_interval = newInterval;
       }
+      console.log('🔧 [SERVICE] changePlan called', { payload });
+      console.log('🔧 [SERVICE] Making POST request to: subscriptions/change_plan/');
+
       const response = await axiosInstance.post('subscriptions/change_plan/', payload);
+
+      console.log('🔧 [SERVICE] Response received', {
+        status: response.status,
+        data: response.data,
+        headers: response.headers
+      });
+
       return response.data;
     } catch (error) {
-      console.error('Change plan error:', error);
+      console.error('🔧 [SERVICE] Change plan error:', error);
+      console.error('🔧 [SERVICE] Error details:', {
+        message: error.message,
+        code: error.code,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       throw error;
     }
   },
