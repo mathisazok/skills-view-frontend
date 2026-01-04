@@ -60,7 +60,8 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
     } catch (error) {
       console.error("Upload error:", error);
       setModalStatus('failed');
-      setMessage(error.response?.data?.error || "Erreur lors de l'upload.");
+      const errorMsg = error.response?.data?.error || error.message || "Erreur lors de l'upload.";
+      setMessage(errorMsg);
     }
   };
 

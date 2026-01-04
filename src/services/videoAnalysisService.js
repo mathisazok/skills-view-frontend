@@ -23,6 +23,7 @@ const videoAnalysisService = {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        timeout: 3600000, // 1 hour timeout for large files
       });
       return response.data;
     } catch (error) {
