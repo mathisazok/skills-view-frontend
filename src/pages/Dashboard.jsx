@@ -140,6 +140,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [uploaderRef, uploaderVisible] = useInView();
   const [subscriptionRef, subscriptionVisible] = useInView();
+  const [alertRef, alertVisible] = useInView();
 
   // Redirection si pas authentifié
   React.useEffect(() => {
@@ -186,6 +187,68 @@ const Dashboard = () => {
               <OverviewSection />
             </div>
           </div>
+
+          {/* Service Unavailable Notice */}
+          <div
+            ref={alertRef}
+            className={`mt-10 mb-8 px-4 sm:px-0 fade-in-up-scroll ${alertVisible ? 'visible' : ''}`}
+          >
+            <div
+              className="max-w-2xl mx-auto rounded-xl p-4 sm:p-5 border-2 border-[#FBBF24] shadow-lg relative overflow-hidden"
+              style={{
+                backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                backdropFilter: 'blur(10px)',
+              }}
+            >
+              {/* Animated gradient background */}
+              <div
+                className="absolute inset-0 opacity-20"
+                style={{
+                  background: 'linear-gradient(45deg, transparent, rgba(251, 191, 36, 0.3), transparent)',
+                  backgroundSize: '200% 200%',
+                  animation: 'gradient-shift 3s ease infinite',
+                }}
+              />
+
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                {/* Icon with pulse animation */}
+                <div className="flex-shrink-0">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-[#FBBF24] rounded-full opacity-25 animate-ping" />
+                    <div className="relative bg-gradient-to-br from-[#FBBF24] to-[#F59E0B] p-2.5 rounded-full">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-dark" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 space-y-1">
+                  <h3 className="text-[#FDE047] text-sm sm:text-base font-bold tracking-tight">
+                    Service temporairement indisponible
+                  </h3>
+                  <p className="text-[#FEF3C7] text-xs sm:text-sm leading-relaxed">
+                    Notre service d'analyse vidéo est actuellement en maintenance et sera de nouveau disponible début janvier.
+                    Merci de votre compréhension.
+                  </p>
+                </div>
+
+                {/* Optional close button or info icon */}
+                <div className="flex-shrink-0 hidden sm:block">
+                  <div className="w-2 h-2 bg-[#FBBF24] rounded-full animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Add keyframes for gradient animation */}
+          <style>{`
+            @keyframes gradient-shift {
+              0%, 100% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+            }
+          `}</style>
         </div>
       </main>
     </div>

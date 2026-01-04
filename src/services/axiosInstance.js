@@ -5,7 +5,7 @@ import axios from 'axios';
  * Intégré avec le backend Django et JWT authentication
  */
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   timeout: 300000, // 5 minutes for large video uploads
   headers: {
     'Content-Type': 'application/json',
@@ -32,18 +32,47 @@ const processQueue = (error, token = null) => {
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
+    console.log('🌐 [AXIOS] Request starting', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      baseURL: config.baseURL,
+      fullURL: `${config.baseURL}/${config.url}`,
+      data: config.data,
+      hasToken: !!token
+    });
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('🌐 [AXIOS] Request error', error);
+    return Promise.reject(error);
+  }
 );
 
 // Intercepteur pour gérer les erreurs et le rafraîchissement du token
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('🌐 [AXIOS] Response received', {
+      status: response.status,
+      statusText: response.statusText,
+      url: response.config.url,
+      data: response.data
+    });
+    return response;
+  },
   async (error) => {
+    console.error('🌐 [AXIOS] Response error', {
+      message: error.message,
+      code: error.code,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      data: error.response?.data
+    });
+
     const originalRequest = error.config;
 
     // If error is 401 and we haven't tried to refresh yet
@@ -79,7 +108,7 @@ axiosInstance.interceptors.response.use(
 
       try {
         const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/token/refresh/`,
+          `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/token/refresh/`,
           { refresh: refreshToken }
         );
 

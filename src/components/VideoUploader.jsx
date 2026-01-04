@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import videoAnalysisService from "../services/videoAnalysisService";
 import ProcessingModal from "./ProcessingModal";
@@ -9,13 +9,24 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
   const { refreshUser } = useAuth();
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  
+  const pollIntervalRef = useRef(null);
+
   // State for modal
   const [modalStatus, setModalStatus] = useState(null); // pending, uploading, processing, completed, failed
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
   const [analysisId, setAnalysisId] = useState(null);
   const [videoSizeBytes, setVideoSizeBytes] = useState(null);
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   const handleBrowseClick = () => {
     fileInputRef.current?.click();
@@ -66,26 +77,37 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
   };
 
   const startPolling = (id) => {
-    let pollInterval = setInterval(async () => {
+    // Clear any existing interval
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+    }
+
+    pollIntervalRef.current = setInterval(async () => {
       try {
         const statusData = await videoAnalysisService.getAnalysisStatus(id);
-        
+
         if (statusData.status === 'completed') {
-          clearInterval(pollInterval);
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
           setModalStatus('completed');
           setProgress(100);
           setMessage("Analyse terminée avec succès !");
-          
+
           // Refresh user data (quota) immediately
           await refreshUser();
-          
+
           // Redirect after short delay
           setTimeout(() => {
             navigate('/analysis-results', { state: { analysisId: id } });
           }, 1500);
-          
+
         } else if (statusData.status === 'failed') {
-          clearInterval(pollInterval);
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
           setModalStatus('failed');
           setMessage(statusData.error_message || "L'analyse a échoué.");
         } else {

@@ -24,8 +24,8 @@ const StatusBadge = ({ status = 'completed' }) => {
      
   };
 
-  // Get config for the current status, default to 'ready'
-  const config = statusConfig[status] || statusConfig.ready;
+  // Get config for the current status, default to 'completed'
+  const config = statusConfig[status] || statusConfig.completed;
 
   return (
     <div className={`py-0.5 px-2 gap-1.5 ${config.backgroundColor} w-fit rounded-full flex justify-center items-center text-xs ${config.textColor}`}>

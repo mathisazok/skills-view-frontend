@@ -32,42 +32,71 @@ const SubscriptionPricingPage = () => {
   }, []);
 
   const handlePlanClick = async (plan) => {
+    console.log('🎯 [SUBSCRIPTION] Button clicked', {
+      planId: plan.id,
+      planName: plan.name,
+      billingType,
+      isAuthenticated
+    });
+
     if (!isAuthenticated) {
-      // Redirect to register with plan selection
+      console.log('❌ [SUBSCRIPTION] User not authenticated, redirecting to login');
       navigate(`/login?plan=${plan.id}&interval=${billingType}`);
       return;
     }
 
     // User is logged in
     const currentPlanId = user?.current_subscription?.plan_id;
-    
+    console.log('👤 [SUBSCRIPTION] User info', {
+      currentPlanId,
+      requestedPlanId: plan.id,
+      user: user
+    });
+
     if (currentPlanId === plan.id) {
-      // Same plan, show message
+      console.log('⚠️ [SUBSCRIPTION] User already subscribed to this plan');
       alert('Vous êtes déjà abonné à ce plan');
       return;
     }
 
     try {
       setActionLoading(true);
+      console.log('📤 [SUBSCRIPTION] Calling subscriptionService.changePlan', {
+        planId: plan.id,
+        interval: billingType
+      });
+
       const result = await subscriptionService.changePlan(
         plan.id,
         billingType
       );
-      
+
+      console.log('📥 [SUBSCRIPTION] API Response received', result);
+
       // Check if we need to redirect to Stripe checkout
       if (result.checkout_url) {
+        console.log('💳 [SUBSCRIPTION] Redirecting to Stripe checkout', result.checkout_url);
         window.location.href = result.checkout_url;
         return;
       }
-      
+
       // Redirect to dashboard after successful plan change (Mock mode or Free plan)
+      console.log('✅ [SUBSCRIPTION] Success! Redirecting to dashboard (no checkout_url)');
       navigate('/dashboard');
     } catch (error) {
-      console.error('Error changing plan:', error);
+      console.error('❌ [SUBSCRIPTION] Error caught:', error);
+      console.error('❌ [SUBSCRIPTION] Error details:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config
+      });
       const errorMessage = error.response?.data?.detail || 'Erreur lors du changement de plan';
       alert(errorMessage);
     } finally {
       setActionLoading(false);
+      console.log('🏁 [SUBSCRIPTION] Process completed');
     }
   };
 

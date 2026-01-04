@@ -26,7 +26,7 @@ const Button = ({ children, primary = false, onClick, className = '', type = 'bu
   if (href) {
     // External link
     return (
-      <a href={href} className={finalClass} target='_blank'>
+      <a href={href} className={finalClass} target='_blank' rel='noopener noreferrer'>
         {children}
       </a>
     );
