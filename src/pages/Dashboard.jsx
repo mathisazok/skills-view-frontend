@@ -142,12 +142,12 @@ const Dashboard = () => {
   const [subscriptionRef, subscriptionVisible] = useInView();
   const [alertRef, alertVisible] = useInView();
 
-  // Check if maintenance banner should be displayed (after 06/01/2026 18:00 French time)
+  // Check if maintenance banner should be displayed (before 06/01/2026 18:00 French time)
   const shouldShowMaintenanceBanner = () => {
     const now = new Date();
-    // 06/01/2026 18:00 French time (CET/CEST)
-    const maintenanceStart = new Date('2026-01-06T17:00:00Z'); // 18:00 CET = 17:00 UTC (winter time)
-    return now >= maintenanceStart;
+    // 06/01/2026 18:00 French time (CET/CEST) - maintenance ends at this time
+    const maintenanceEnd = new Date('2026-01-06T17:00:00Z'); // 18:00 CET = 17:00 UTC (winter time)
+    return now < maintenanceEnd; // Show banner BEFORE this date, hide it AFTER
   };
 
   // Redirection si pas authentifié
@@ -196,7 +196,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Service Unavailable Notice - Only shows after 06/01/2026 18:00 French time */}
+          {/* Service Unavailable Notice - Shows until 06/01/2026 18:00 French time, then disappears */}
           {shouldShowMaintenanceBanner() && (
             <div
               ref={alertRef}
