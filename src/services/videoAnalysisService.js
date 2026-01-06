@@ -6,25 +6,49 @@ import axiosInstance from './axiosInstance';
  */
 const videoAnalysisService = {
   /**
-   * Upload a video for analysis
+   * Upload a video for analysis using S3 direct upload
    * @param {File} videoFile - Video file to upload
    * @param {string} title - Optional title for the analysis
    * @returns {Promise} - Response containing analysis ID and status
    */
   uploadVideo: async (videoFile, title = '') => {
-    const formData = new FormData();
-    formData.append('video', videoFile);
-    if (title) {
-      formData.append('title', title);
-    }
-
     try {
-      const response = await axiosInstance.post('video-analysis/upload/', formData, {
+      // Step 1: Request presigned S3 URL from VPS
+      const urlResponse = await axiosInstance.get('video-analysis/upload_url/', {
+        params: {
+          filename: videoFile.name,
+          content_type: videoFile.type || 'video/mp4'
+        }
+      });
+      
+      const { upload_url, s3_key } = urlResponse.data;
+      console.log('Got presigned URL for S3 upload:', s3_key);
+      
+      // Step 2: Upload directly to OVH S3 (bypasses VPS)
+      await axios.put(upload_url, videoFile, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': videoFile.type || 'video/mp4',
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log(`Upload progress: ${percentCompleted}%`);
+          // TODO: Update UI progress bar here if needed
         },
         timeout: 3600000, // 1 hour timeout for large files
       });
+      
+      console.log('S3 upload complete, starting analysis...');
+      
+      // Step 3: Tell VPS to start analysis with the S3 key
+      const response = await axiosInstance.post('video-analysis/upload/', {
+        s3_key: s3_key,
+        title: title || videoFile.name,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
       return response.data;
     } catch (error) {
       console.error('Error uploading video:', error);
