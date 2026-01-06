@@ -1,4 +1,4 @@
-# Skills View - Frontend Boilerplate
+# Skills View  Frontend Boilerplate
 
 Plateforme SaaS d'analyse vidéo de matchs de football avec React.js, TailwindCSS, React Router et Axios.
 
