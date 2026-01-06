@@ -1,4 +1,5 @@
 import axiosInstance from './axiosInstance';
+import axios from 'axios';
 
 /**
  * Service for Video Analysis API operations
