@@ -18,11 +18,11 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
   const [analysisId, setAnalysisId] = useState(null);
   const [videoSizeBytes, setVideoSizeBytes] = useState(null);
 
-  // Check if import button should be disabled (before 13/01/2025 00:00 French time)
+  // Check if import button should be disabled (before 13/01/2026 00:00 French time)
   const isImportDisabled = () => {
     const now = new Date();
-    // 13/01/2025 00:00 French time (CET) - import becomes available at this time
-    const enableDate = new Date('2025-01-12T23:00:00Z'); // 13/01/2025 00:00 CET = 12/01/2025 23:00 UTC (winter time)
+    // 13/01/2026 00:00 French time (CET) - import becomes available at this time
+    const enableDate = new Date('2026-01-12T23:00:00Z'); // 13/01/2026 00:00 CET = 12/01/2026 23:00 UTC (winter time)
     return now < enableDate; // Disabled BEFORE this date, enabled AFTER
   };
 
