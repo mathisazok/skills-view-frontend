@@ -18,14 +18,6 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
   const [analysisId, setAnalysisId] = useState(null);
   const [videoSizeBytes, setVideoSizeBytes] = useState(null);
 
-  // Check if import button should be disabled (before 13/01/2026 00:00 French time)
-  const isImportDisabled = () => {
-    const now = new Date();
-    // 13/01/2026 00:00 French time (CET) - import becomes available at this time
-    const enableDate = new Date('2026-01-12T23:00:00Z'); // 13/01/2026 00:00 CET = 12/01/2026 23:00 UTC (winter time)
-    return now < enableDate; // Disabled BEFORE this date, enabled AFTER
-  };
-
   // Cleanup interval on unmount
   useEffect(() => {
     return () => {
@@ -37,10 +29,6 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
   }, []);
 
   const handleBrowseClick = () => {
-    if (isImportDisabled()) {
-      alert("Mise à jour en cours, indisponible.");
-      return;
-    }
     fileInputRef.current?.click();
   };
 
@@ -165,12 +153,7 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
           {/* Upload Button */}
           <button
             onClick={handleBrowseClick}
-            disabled={isImportDisabled()}
-            className={`w-44 h-10 rounded-lg px-3.5 font-spline text-sm leading-[21px] mt-3 transition-colors ${
-              isImportDisabled()
-                ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-50'
-                : 'bg-primary text-dark cursor-pointer hover:bg-primary/90'
-            }`}
+            className="w-44 h-10 rounded-lg px-3.5 font-spline text-sm leading-[21px] mt-3 transition-colors bg-primary text-dark cursor-pointer hover:bg-primary/90"
           >
             Parcourir les fichiers
           </button>
@@ -181,7 +164,6 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
             type="file"
             accept="video/mp4,video/quicktime,video/x-matroska,video/avi"
             onChange={handleFileChange}
-            disabled={isImportDisabled()}
             className="hidden"
           />
         </div>
