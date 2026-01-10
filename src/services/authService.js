@@ -47,7 +47,7 @@ export const authService = {
 
       // Handle network errors
       if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-        throw new Error('Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur http://localhost:8000');
+        throw new Error('Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur http://localhost:3000');
       }
 
       // Handle timeout errors
