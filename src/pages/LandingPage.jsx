@@ -188,7 +188,7 @@ const LandingPage = () => {
         </div>
       </section>
    {/* ===== PRICING SECTION ===== */}
-      <section id="pricing" className="py-12 sm:py-16 md:py-20  sm:px-6 bg-dark">
+      <section id="pricing" className="py-12 sm:py-16 md:py-20  sm:px-6 bg-dark hidden">
         <div className="lg:container mx-auto lg:px-30">
 
           <div ref={pricingRef} className="grid grid-cols-1 md:grid-cols-3 justify-items-center gap-4 sm:gap-6 items-stretch">
