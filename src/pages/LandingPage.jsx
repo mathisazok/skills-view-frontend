@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import ServiceCard from '../components/ServiceCard';
@@ -17,24 +17,12 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const [actionLoading, setActionLoading] = useState(false);
-  const [isTypeformModalOpen, setIsTypeformModalOpen] = useState(false);
-
-  // Load Typeform script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = '//embed.typeform.com/next/embed.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   // Handle button clicks
   const handleButtonClick = (link) => {
     if (link === '#typeform') {
-      setIsTypeformModalOpen(true);
+      setIsContactModalOpen(true);
     } else if (link.startsWith('http')) {
       window.open(link, '_blank');
     } else {
@@ -251,24 +239,103 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Typeform Modal */}
-      {isTypeformModalOpen && (
+      {/* Contact Form Modal */}
+      {isContactModalOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => setIsTypeformModalOpen(false)}
+          onClick={() => setIsContactModalOpen(false)}
         >
           <div
             className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-auto relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              onClick={() => setIsTypeformModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold z-10"
+              onClick={() => setIsContactModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold z-10 bg-transparent border-none cursor-pointer"
             >
               ✕
             </button>
-            <div className="p-6">
-              <div data-tf-live="01KEMMWMD9P1DJK6Y0MSQ29KK7"></div>
+            <div className="p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Essayer gratuitement</h2>
+              <p className="text-gray-600 mb-6">Remplissez ce formulaire et nous vous contacterons rapidement.</p>
+              <form action="https://api.web3forms.com/submit" method="POST" className="space-y-4">
+                <input type="hidden" name="access_key" value="97a8eba7-f7db-4d9f-82a9-3418e60bb06a" />
+
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom complet <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    placeholder="Votre nom"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    placeholder="votre@email.com"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                    Téléphone
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    placeholder="+33 6 12 34 56 78"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="club" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom du club
+                  </label>
+                  <input
+                    type="text"
+                    id="club"
+                    name="club"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    placeholder="Votre club"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                    Message <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    required
+                    rows="4"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
+                    placeholder="Parlez-nous de votre projet..."
+                  ></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all duration-300"
+                >
+                  Envoyer
+                </button>
+              </form>
             </div>
           </div>
         </div>
