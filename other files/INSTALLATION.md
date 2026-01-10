@@ -34,7 +34,7 @@ cp .env.example .env
 ### Modifier les variables (optionnel)
 ```bash
 # .env
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=http://localhost:8000/api
 VITE_ENV=development
 ```
 
