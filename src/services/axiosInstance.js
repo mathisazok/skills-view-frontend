@@ -6,7 +6,7 @@ import axios from 'axios';
  */
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
-  timeout: 300000, // 5 minutes for large video uploads
+  timeout: 30000, // 30 seconds (will be overridden for video uploads)
   headers: {
     'Content-Type': 'application/json',
   },

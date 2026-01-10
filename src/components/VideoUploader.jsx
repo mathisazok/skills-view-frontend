@@ -18,6 +18,10 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
   const [analysisId, setAnalysisId] = useState(null);
   const [videoSizeBytes, setVideoSizeBytes] = useState(null);
 
+  // Désactivation temporaire pour maintenance
+  const isMaintenanceMode = true;
+  const maintenanceMessage = "En raison de mises à jour, pas d'analyse possible ce week-end";
+
   // Cleanup interval on unmount
   useEffect(() => {
     return () => {
@@ -29,6 +33,10 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
   }, []);
 
   const handleBrowseClick = () => {
+    if (isMaintenanceMode) {
+      alert(maintenanceMessage);
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -150,10 +158,22 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
             supportés: MP4, MOV.
           </p>
 
+          {/* Maintenance Message */}
+          {isMaintenanceMode && (
+            <p className="text-xs text-yellow-400 max-w-[405px] font-spline font-normal text-center leading-[18px] mt-2">
+              {maintenanceMessage}
+            </p>
+          )}
+
           {/* Upload Button */}
           <button
             onClick={handleBrowseClick}
-            className="w-44 h-10 rounded-lg px-3.5 font-spline text-sm leading-[21px] mt-3 transition-colors bg-primary text-dark cursor-pointer hover:bg-primary/90"
+            disabled={isMaintenanceMode}
+            className={`w-44 h-10 rounded-lg px-3.5 font-spline text-sm leading-[21px] mt-3 transition-colors ${
+              isMaintenanceMode
+                ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-50'
+                : 'bg-primary text-dark cursor-pointer hover:bg-primary/90'
+            }`}
           >
             Parcourir les fichiers
           </button>
@@ -164,6 +184,7 @@ const VideoUploader = ({ quotaRemaining, planQuota }) => {
             type="file"
             accept="video/mp4,video/quicktime,video/x-matroska,video/avi"
             onChange={handleFileChange}
+            disabled={isMaintenanceMode}
             className="hidden"
           />
         </div>

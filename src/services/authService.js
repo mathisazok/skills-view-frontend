@@ -13,9 +13,12 @@ export const authService = {
    */
   login: async (email, password) => {
     try {
+      console.log('🔐 [AUTH] Attempting login for:', email);
+
       // Call the JWT login endpoint
       const response = await axiosInstance.post('login/', { email, password });
-      
+
+      console.log('✅ [AUTH] Login successful');
       const { access, refresh } = response.data;
 
       // Store tokens in localStorage
@@ -40,13 +43,25 @@ export const authService = {
 
       return { success: true, user: userProfile, token: access };
     } catch (error) {
-      console.error('Login error:', error);
-      
+      console.error('❌ [AUTH] Login error:', error);
+
+      // Handle network errors
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        throw new Error('Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur http://localhost:8000');
+      }
+
+      // Handle timeout errors
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('La connexion a pris trop de temps. Vérifiez votre connexion internet.');
+      }
+
       // Handle specific error messages from backend
       if (error.response?.status === 401) {
         throw new Error('Identifiants invalides');
       } else if (error.response?.data?.detail) {
         throw new Error(error.response.data.detail);
+      } else if (error.response) {
+        throw new Error(`Erreur serveur (${error.response.status}). Veuillez réessayer.`);
       } else {
         throw new Error('Erreur de connexion. Veuillez réessayer.');
       }
