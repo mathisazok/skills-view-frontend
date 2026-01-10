@@ -90,7 +90,7 @@ VITE_API_URL=https://api.skillsview.com
 #### src/services/axiosInstance.js
 ```javascript
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   timeout: 10000,
 });
 ```
