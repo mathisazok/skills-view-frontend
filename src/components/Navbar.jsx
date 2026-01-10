@@ -28,11 +28,11 @@ const Navbar = () => {
         <ul className={`${
           isOpen ? 'flex' : 'hidden'
         } md:flex flex-col md:flex-row gap-8 absolute md:static top-13 left-0 right-0 bg-primary md:bg-transparent p-6 md:p-0 items-center md:align-baseline`}>
-          <li><a href="#services" className="hover:opacity-80 transition">Fonctionnalité</a></li>
-          <li><Link to='pricing' className="hover:opacity-80 transition">Tarifs</Link></li>
-          <li><a href="#reviews" className="hover:opacity-80 transition">Témoignages</a></li>
-          <li><a href="#contact" className="hover:opacity-80 transition">Contact</a></li>
-          <li className="flex gap-2">
+          <li className="hidden"><a href="#services" className="hover:opacity-80 transition">Fonctionnalité</a></li>
+          <li className="hidden"><Link to='pricing' className="hover:opacity-80 transition">Tarifs</Link></li>
+          <li className="hidden"><a href="#reviews" className="hover:opacity-80 transition">Témoignages</a></li>
+          <li className="hidden"><a href="#contact" className="hover:opacity-80 transition">Contact</a></li>
+          <li className="flex gap-2 hidden">
             <Link
               to="/login"
               className="bg-white text-primary px-4 py-1  rounded-lg font-semibold hover:bg-opacity-90 transition"
