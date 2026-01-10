@@ -240,7 +240,7 @@ npm run preview
 
 ```env
 # À créer à la racine du projet
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=http://localhost:8000/api
 ```
 
 ## 📞 Support
