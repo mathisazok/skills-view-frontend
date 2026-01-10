@@ -270,7 +270,7 @@ const LandingPage = () => {
                     id="name"
                     name="name"
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900"
                     placeholder="Votre nom"
                   />
                 </div>
@@ -284,7 +284,7 @@ const LandingPage = () => {
                     id="email"
                     name="email"
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900"
                     placeholder="votre@email.com"
                   />
                 </div>
@@ -297,7 +297,7 @@ const LandingPage = () => {
                     type="tel"
                     id="phone"
                     name="phone"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900"
                     placeholder="+33 6 12 34 56 78"
                   />
                 </div>
@@ -310,7 +310,7 @@ const LandingPage = () => {
                     type="text"
                     id="club"
                     name="club"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900"
                     placeholder="Votre club"
                   />
                 </div>
@@ -324,7 +324,7 @@ const LandingPage = () => {
                     name="message"
                     required
                     rows="4"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none text-gray-900"
                     placeholder="Parlez-nous de votre projet..."
                   ></textarea>
                 </div>
