@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import ServiceCard from '../components/ServiceCard';
@@ -17,6 +17,30 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const [actionLoading, setActionLoading] = useState(false);
+  const [isTypeformModalOpen, setIsTypeformModalOpen] = useState(false);
+
+  // Load Typeform script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = '//embed.typeform.com/next/embed.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  // Handle button clicks
+  const handleButtonClick = (link) => {
+    if (link === '#typeform') {
+      setIsTypeformModalOpen(true);
+    } else if (link.startsWith('http')) {
+      window.open(link, '_blank');
+    } else {
+      navigate(link);
+    }
+  };
 
     // Handle subscription button click (same logic as SubscriptionPricingPage)
   const handleSubscribe = async (planId) => {
@@ -89,7 +113,11 @@ const LandingPage = () => {
             </p>
             <div ref={heroButtonsRef} className={`w-full flex gap-2 sm:gap-4 flex-wrap justify-center     fade-in-up-scroll ${heroButtonsVisible ? 'visible' : ''}`}>
               {hero.buttons.map((btn, idx) => (
-                <Button key={idx} primary={btn.primary} href={btn.link} >
+                <Button
+                  key={idx}
+                  primary={btn.primary}
+                  onClick={() => handleButtonClick(btn.link)}
+                >
                   {btn.label}
                 </Button>
               ))}
@@ -211,13 +239,40 @@ const LandingPage = () => {
           <p className={`text-gray-text text-sm sm:text-base md:text-[16px] leading-6 sm:leading-7 max-w-2xl  mx-auto fade-in-up-scroll ${ctaVisible ? 'visible' : ''}`} style={{ transitionDelay: '0.1s' }}>Passez au niveau supérieur. Sans effort, sans vous ruiner.</p>
           <div ref={ctaButtonsRef} className={`mt-8 sm:mt-10 md:mt-12 flex gap-2 sm:gap-4 flex-wrap justify-center fade-in-up-scroll ${ctaButtonsVisible ? 'visible' : ''}`} style={{ transitionDelay: '0.2s' }}>
             {cta.buttons.map((btn, idx) => (
-              <Button key={idx} primary={btn.primary} href={btn.link}>
+              <Button
+                key={idx}
+                primary={btn.primary}
+                onClick={() => handleButtonClick(btn.link)}
+              >
                 {btn.label}
               </Button>
             ))}
           </div>
         </div>
       </section>
+
+      {/* Typeform Modal */}
+      {isTypeformModalOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setIsTypeformModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-auto relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setIsTypeformModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold z-10"
+            >
+              ✕
+            </button>
+            <div className="p-6">
+              <div data-tf-live="01KEMMWMD9P1DJK6Y0MSQ29KK7"></div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
